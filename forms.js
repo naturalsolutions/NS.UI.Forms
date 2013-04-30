@@ -3,10 +3,6 @@ var NS = window.NS || {};
 NS.UI = (function(ns) {
     "use strict";
 
-    /*
-     * Form view
-     */
-
     var validators = {};
 
 	// Declare an exception class for validation errors

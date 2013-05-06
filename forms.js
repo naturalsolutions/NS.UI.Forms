@@ -195,7 +195,7 @@ NS.UI = (function(ns) {
             }
             BaseEditor.prototype.initialize.apply(this, arguments);
             // /!\ options should not be added to validOptions because it would override this.options (which is an internal property used by LayoutManager
-            this.optionList = options.options;
+            this.optionConfig = options.options;
         },
 
         getValue: function() {
@@ -213,9 +213,17 @@ NS.UI = (function(ns) {
 
         serialize: function() {
             var viewData = BaseEditor.prototype.serialize.apply(this, arguments);
-            var options = [{label: '', options: this.optionList}];
-            if (!this.required && !this.multiple) options[0].options.unshift({val: '', label: '--'});
-            viewData.options = options;
+            var options = [];
+            var optionConfig = _.result(this, 'optionConfig');
+            if (optionConfig instanceof Backbone.Collection) {
+                optionConfig.each(function(item) {
+                    options.push({val: item.id, label: item.toString()});
+                });
+            } else {
+                options = optionConfig;
+            }
+            if (!this.required && !this.multiple) options.unshift({val: '', label: '--'});
+            viewData.options = [{label: '', options: options}];
             return viewData;
         }
     });

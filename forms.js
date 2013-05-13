@@ -196,9 +196,14 @@ NS.UI = (function(ns) {
 			this.validOptions = this.validOptions.concat(['multiple']);
             if (!('initialData' in options)) {
                 options.initialData = [];
+            // Store data in array even when select is not 'multiple'
             } else if (!_.isArray(options.initialData)) {
                 options.initialData = [options.initialData];
             }
+            // When the select source is a collection, initialData are model instances.
+            options.initialData = _.map(options.initialData, function(d) {
+                return _.isObject(d) ? d.id : d;
+            });
             BaseEditor.prototype.initialize.apply(this, arguments);
             // /!\ options should not be added to validOptions because it would override this.options (which is an internal property used by LayoutManager
             this.optionConfig = options.options;

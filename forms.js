@@ -52,6 +52,12 @@ NS.UI = (function(ns) {
             if (this.required) this.validators.push(new validators.Required());
         },
 
+        addEvents: function(events) {
+            this.events = _.result(this, 'events') || {};
+            _.extend(this.events, events);
+            this.delegateEvents();
+        },
+
         getValue: function() {
 			// To be implemented by child classes
 			// must return parsed user input

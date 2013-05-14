@@ -219,7 +219,15 @@ NS.UI = (function(ns) {
         },
 
 		postProcessData: function (rawData) {
-			return (this.multiple) ? rawData : rawData[0];
+            // When the select source is a collection, convert model ids into model instance.
+            var optionConfig = _.result(this, 'optionConfig');
+            if (optionConfig instanceof Backbone.Collection)
+                rawData = _.map(rawData, function(value) {
+                    return this.get(value);
+                }, optionConfig);
+
+            // Unpack data when multiple selection is not allowed
+            return (this.multiple) ? rawData : rawData[0];
         },
 
         serialize: function() {

@@ -266,15 +266,27 @@ NS.UI = (function(ns) {
 		addEditor: function (name, Editor, options) {
 			// Do not proceed for readonly fields
 			if ('editable' in options && !options.editable ) return;
+			// Instantiate a subview for this editor + make names/identifiers unique
 			var view = new Editor(_.extend({}, options, {
 				id: this.id + '_' + name,
 				name: this.childNamePrefix + name,
 				label: options.title || name
 			}));
 			this.insertView(this.fieldRegion, view);
+			// Keep original name in a hash
 			this.names[view.name] = name;
+            // Bind MultiSchema fields to their selector
+            if (Editor == editors.MultiSchema) {
+                var selector = this.getViews(this.fieldRegion).find(function(v) {
+                    return this.selector == v.name;
+                }, view).value();
+                if (selector)
+                    view.setSelector(selector);
+            }
+            // Handle validation success and error
             this.listenTo(view, 'valid:pass', this.onFieldValidate);
             this.listenTo(view, 'valid:fail', this.onFieldError);
+
 			return view;
 		},
 
@@ -464,6 +476,67 @@ NS.UI = (function(ns) {
 
         serialize: function() {
             return ('headers' in this.options) ? _.pick(this.options, 'headers') : {headers: []};
+        }
+    });
+
+    editors.MultiSchema = editors.NestedModel.extend({
+        initialize: function(options) {
+            this.validOptions = this.validOptions.concat(['schemas', 'selector']);
+
+            if (!('schemas' in options))
+                throw new Error('Could not find schemas definition');
+
+            if (!('selector' in options))
+                throw new Error('Could not attach to a selector field');
+
+            this.activeSchema = null;
+            this.initialSchema = null;
+            options.initialData = (options.initialData) ? options.initialData : {};
+
+            editors._Composite.prototype.initialize.apply(this, arguments);
+        },
+
+        getFields: function () {
+            var fields = [];
+
+            var schemas = _.result(this, 'schemas');
+            _.each(schemas[this.activeSchema], function(field, name) {
+                if (this.activeSchema !== null && this.activeSchema == this.initialSchema)
+                    field.initialData = this.initialData[name];
+                field.inline = field.inline || this.inline;
+
+                var editor = editors[field.type];
+                if (editor)
+                    fields.push({name: name, editor: editor, options: field});
+            }, this);
+            return fields;
+        },
+
+        setSelector: function(view) {
+            this.initialSchema = view.initialData[0];
+            this.setSchema(this.initialSchema);
+            view.addEvents({'change select': _.bind(function(e) {this.setSchema($(e.target).val());}, this)});
+        },
+
+        setSchema: function(id) {
+            var schemas = _.result(this, 'schemas');
+            if (!(id in schemas)) return;
+
+            this.activeSchema = id;
+
+            this.getViews(this.fieldRegion).each(function(view) {
+                if (view instanceof BaseEditor) {
+                    view.remove();
+                }
+            }),
+
+            // Create editors for each fields
+            _.each(this.getFields(), function(fieldDefinition) {
+                this.addEditor.apply(this, _.values(fieldDefinition));
+            }, this);
+
+            // Refresh view if it has already rendered
+            if (this.el.parentNode) this.render();
         }
     });
 

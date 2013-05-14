@@ -532,11 +532,15 @@ NS.UI = (function(ns) {
 
             this.activeSchema = id;
 
+            // Blank fields from the previous schema
             this.getViews(this.fieldRegion).each(function(view) {
                 if (view instanceof BaseEditor) {
                     view.remove();
                 }
             }),
+            this.data = {};
+            this.errors = {};
+            this.names = {};
 
             // Create editors for each fields
             _.each(this.getFields(), function(fieldDefinition) {

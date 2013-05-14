@@ -499,6 +499,7 @@ NS.UI = (function(ns) {
 
             this.activeSchema = null;
             this.initialSchema = null;
+            this.cache = {};
             options.initialData = (options.initialData) ? options.initialData : {};
 
             editors._Composite.prototype.initialize.apply(this, arguments);
@@ -509,8 +510,11 @@ NS.UI = (function(ns) {
 
             var schemas = _.result(this, 'schemas');
             _.each(schemas[this.activeSchema], function(field, name) {
-                if (this.activeSchema !== null && this.activeSchema == this.initialSchema)
+                if (this.activeSchema in this.cache && name in this.cache[this.activeSchema].data) {
+                    field.initialData = this.cache[this.activeSchema].data[name];
+                } else if (this.activeSchema !== null && this.activeSchema == this.initialSchema) {
                     field.initialData = this.initialData[name];
+                }
                 field.inline = field.inline || this.inline;
 
                 var editor = editors[field.type];
@@ -532,15 +536,20 @@ NS.UI = (function(ns) {
 
             this.activeSchema = id;
 
+            if (!(id in this.cache))
+                this.cache[id] = {data: {}, names: {}, errors: {}};
+
             // Blank fields from the previous schema
             this.getViews(this.fieldRegion).each(function(view) {
                 if (view instanceof BaseEditor) {
                     view.remove();
                 }
             }),
-            this.data = {};
-            this.errors = {};
-            this.names = {};
+
+            // Point toword activeSchema data
+            this.data = this.cache[id].data;
+            this.errors = this.cache[id].errors;
+            this.names = this.cache[id].names;
 
             // Create editors for each fields
             _.each(this.getFields(), function(fieldDefinition) {

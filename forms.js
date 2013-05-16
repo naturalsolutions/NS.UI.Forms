@@ -194,7 +194,7 @@ NS.UI = (function(ns) {
 
         initialize: function(options) {
 			this.validOptions = this.validOptions.concat(['multiple']);
-            if (!('initialData' in options)) {
+            if (!('initialData' in options) || (typeof(options.initialData) === 'undefined')) {
                 options.initialData = [];
             // Store data in array even when select is not 'multiple'
             } else if (!_.isArray(options.initialData)) {
@@ -215,6 +215,24 @@ NS.UI = (function(ns) {
                 if (val === this.nullValue || val === null) return undefined;
                 if (! this.multiple) return [val];
                 return val;
+            }
+        },
+
+        getInitialValue: function() {
+            if (this.initialData.length > 0) {
+                return this.initialData;
+            } else {
+                var optionConfig = _.result(this, 'optionConfig');
+                if (!this.multiple && optionConfig.length > 0) {
+                    // There is no initial data but the browser will select the first option anyway
+                    if (optionConfig instanceof Backbone.Collection) {
+                        return [optionConfig.at(0).id];
+                    } else {
+                        return [optionConfig[0].val]
+                    }
+                } else {
+                    return [];
+                }
             }
         },
 
@@ -525,7 +543,7 @@ NS.UI = (function(ns) {
         },
 
         setSelector: function(view) {
-            this.initialSchema = view.initialData[0];
+            this.initialSchema = view.getInitialValue()[0];
             this.setSchema(this.initialSchema);
             view.addEvents({'change select': _.bind(function(e) {this.setSchema($(e.target).val());}, this)});
         },

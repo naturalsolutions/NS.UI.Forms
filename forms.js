@@ -359,13 +359,13 @@ NS.UI = (function(ns) {
 			if (options.initialData && options.initialData instanceof Backbone.Model) {
 				// /!\ Should we check whether initialData is actually a model instance ?
 				this.instance = options.initialData;
-				this.schema = this.instance.schema;
+				this.schema = this.instance.constructor.schema;
 				options.initialData = options.initialData.attributes;
 			} else if (options.model) {
 				this.Model = options.model;
 				options.initialData = (options.initialData) ? options.initialData : {};
 				this.instance = new this.Model(options.initialData);
-				this.schema = this.instance.schema;
+				this.schema = this.instance.constructor.schema;
 			} else {
 				this.schema = options.schema;
 				options.initialData = (options.initialData) ? options.initialData : {};

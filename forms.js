@@ -33,7 +33,7 @@ NS.UI = (function(ns) {
 
 	// Base class for all editors
     var BaseEditor = eCollection.utilities.BaseView.extend({
-        prefix: eCollection.config.root + '/templates/form/',
+        prefix: eCollection.config.root + '/static/templates/form/',
 
         validOptions: ['id', 'name', 'initialData', 'label', 'template', 'required', 'helpText', 'inline'],
 

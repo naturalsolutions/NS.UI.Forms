@@ -257,7 +257,13 @@ NS.UI = (function(ns) {
                     options.push({val: item.id, label: item.toString()});
                 });
             } else {
-                options = optionConfig;
+                _.each(optionConfig, function(item) {
+					if (typeof(item) == 'object') {
+						options.push(item);
+					} else {
+						options.push({val: item, label: item});
+					}
+                });
             }
             if (!this.required && !this.multiple) options.unshift({val: '', label: '--'});
             viewData.options = [{label: '', options: options}];

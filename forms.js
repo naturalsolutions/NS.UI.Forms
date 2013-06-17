@@ -236,7 +236,8 @@ NS.UI = (function(ns) {
             }
         },
 
-		postProcessData: function (rawData) {
+        postProcessData: function (rawData) {
+            if (typeof(rawData) === 'undefined') return rawData;
             // When the select source is a collection, convert model ids into model instance.
             var optionConfig = _.result(this, 'optionConfig');
             if (optionConfig instanceof Backbone.Collection)

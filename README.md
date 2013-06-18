@@ -7,6 +7,13 @@ Generate forms for Backbone models
 
 Work in progress, use at your own risk...
 
+## Features ##
+
+* Automatically generate forms based on model schema
+* On-the-fly validation
+* Classic stacked layout (one field per line) or inline layout (useful for tabular list of related objects)
+* Extendable, customizable
+
 ## Documentation (draft) ##
 
 ### Configuration ###

@@ -5,11 +5,9 @@ Generate forms for Backbone models
 
 ## Status ##
 
-/!\ Work in progress, early stage, don't use /!\
+Work in progress, use at your own risk...
 
-This code is not completely decoupled from the project it has been extracted from. Plus, some files have not been included yet. I hope I'll be able to clean this up soon.
-
-## Documentation (draft/ongoing) ##
+## Documentation (draft) ##
 
 ### Configuration ###
 

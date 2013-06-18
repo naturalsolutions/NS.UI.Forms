@@ -3,6 +3,31 @@ var NS = window.NS || {};
 NS.UI = (function(ns) {
     "use strict";
 
+    var cache = {
+        inline: {},
+        stacked: {}
+    };
+
+    var BaseView = Backbone.Layout.extend({
+        manage: true, // Enable LM
+        el: false, // LM will use template's root node
+
+        initialize: function() {
+            // Ensure LM will execute template() with an appriate context
+            this.template = _.bind(this.template, this);
+            Backbone.Layout.prototype.initialize.apply(this, arguments);
+        },
+
+        // Note: we can not rely an LM fetch/cache mechanism because we have two alternative templates for each view
+        templateId: '',
+        template: function(data) {
+            var mode = data.inline ? 'inline' : 'stacked';
+            if (!(this.templateId in cache[mode]))
+                cache[mode][this.templateId] = _.template(this.constructor.templateSrc[mode], null, {variable: 'data'});
+            return cache[mode][this.templateId](data);
+        }
+    });
+
     var validators = {};
 
 	// Declare an exception class for validation errors
@@ -18,7 +43,7 @@ NS.UI = (function(ns) {
 				return value;
 			throw new ValidationError(this.msg);
 		};
-	}
+	};
 
 	validators.Required = function() {
 		this.msg = 'Blank value not allowed here';
@@ -27,15 +52,15 @@ NS.UI = (function(ns) {
                 throw new ValidationError(this.msg);
             return value;
 		};
-	}
+	};
 
     var editors = {};
 
-	// Base class for all editors
-    var BaseEditor = eCollection.utilities.BaseView.extend({
-        prefix: eCollection.config.root + '/static/templates/form/',
-
-        validOptions: ['id', 'name', 'initialData', 'label', 'template', 'required', 'helpText', 'inline'],
+    /*
+     * Base class for all editors
+     */
+    var BaseEditor = BaseView.extend({
+        validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'inline'],
 
 		validators: [],
 
@@ -46,7 +71,7 @@ NS.UI = (function(ns) {
         },
 
         initialize: function(options) {
-            eCollection.utilities.BaseView.prototype.initialize.apply(this, arguments);
+            BaseView.prototype.initialize.apply(this, arguments);
             _.defaults(options, this.defaults);
             _.extend(this, _.pick(options, this.validOptions));
             if (this.required) this.validators.push(new validators.Required());
@@ -111,7 +136,7 @@ NS.UI = (function(ns) {
     });
 
     editors.Text = BaseEditor.extend({
-        template: 'editor-text',
+        templateId: 'editor-text',
 
         events: {
             'blur input': function(e) {this.validate();}
@@ -133,6 +158,23 @@ NS.UI = (function(ns) {
                 return (value === '') ? undefined : value;
             }
         }
+    }, {
+        templateSrc: {
+            stacked:
+                '<div class="control-group">' +
+                '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                '    <div class="controls">' +
+                '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+                '        <div class="help-inline"></div>' +
+                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                '    </div>' +
+                '</div>',
+            inline:
+                '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
+                '    <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+                '    <div class="help-inline"></div>' +
+                '</td>'
+        }
     });
 
     editors.Number = editors.Text.extend({
@@ -144,7 +186,7 @@ NS.UI = (function(ns) {
 	});
 
     editors.Boolean = BaseEditor.extend({
-        template: 'editor-boolean',
+        templateId: 'editor-boolean',
 
 		value_yes: 'yes',
 		value_no: 'no',
@@ -183,10 +225,41 @@ NS.UI = (function(ns) {
 			BaseEditor.prototype.handleValidationError.apply(this, arguments);
             this.$el.find('.help-inline').html(err.message);
 		}
+    }, {
+        templateSrc: {
+            stacked:
+                '<div class="control-group">' +
+                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                '    <div class="controls">' +
+                '        <label class="radio inline">' +
+                '            <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
+                '            <%- data.label_yes %>' +
+                '        </label>' +
+                '        <label class="radio inline">' +
+                '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
+                '            <%- data.label_no %>' +
+                '        </label>' +
+                '        <div class="help-inline"></div>' +
+                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                '    </div>' +
+                '</div>',
+            inline:
+                '<td<% if (data.elpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                '    <label class="radio inline">' +
+                '        <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
+                '        <%- data.label_yes %>' +
+                '    </label>' +
+                '    <label class="radio inline">' +
+                '        <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
+                '        <%- data.label_no %>' +
+                '    </label>' +
+                '    <div class="help-inline"></div>' +
+                '</td>'
+        }
     });
 
 	editors.Select = BaseEditor.extend({
-        template: 'editor-select',
+        templateId: 'editor-select',
 
         multiple: false,
 
@@ -269,6 +342,37 @@ NS.UI = (function(ns) {
             if (!this.required && !this.multiple) options.unshift({val: '', label: '--'});
             viewData.options = [{label: '', options: options}];
             return viewData;
+        }
+    }, {
+        templateSrc: {
+            stacked:
+                '<div class="control-group">' +
+                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                '    <div class="controls">' +
+                '        <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
+                '            <% _.each(data.options, function(group) {' +
+                '                var isGroup = group.label != "";' +
+                '                if (isGroup) { %><optgroup label="<%- group.label %>"><% }' +
+                '                _.each(group.options, function(opt) { %><option value="<%- opt.val %>"<% if (_.contains(data.initialData, opt.val)) { %> selected="selected"<% } %>><%- opt.label %></option><% });' +
+                '                if (isGroup) { %></optgroup><% }' +
+                '            }); %>' +
+                '        </select>' +
+                '        <div class="help-inline"></div>' +
+                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                '    </div>' +
+                '</div>',
+            inline:
+                '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                '    <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
+                '        <% _.each(data.options, function(group) {' +
+                '            var isGroup = group.label != "";' +
+                '            if (isGroup) { %><optgroup label="<%- group.label %>"><% }' +
+                '            _.each(group.options, function(opt) { %><option value="<%- opt.val %>"<% if (_.contains(data.initialData, opt.val)) { %> selected="selected"<% } %>><%- opt.label %></option><% });' +
+                '            if (isGroup) { %></optgroup><% }' +
+                '        }); %>' +
+                '    </select>' +
+                '    <div class="help-inline"></div>' +
+                '</td>'
         }
     });
 
@@ -359,7 +463,7 @@ NS.UI = (function(ns) {
 	});
 
     editors.NestedModel = editors._Composite.extend({
-        template: 'subform',
+        templateId: 'subform',
 
         initialize: function(options) {
 			// Initialize schema+initialData depending on provided input (model instance? model class? raw schema/data)
@@ -424,10 +528,19 @@ NS.UI = (function(ns) {
         serialize: function() {
             return {title: this.label, helpText: this.helpText, inline: this.inline};
         }
+    }, {
+        templateSrc: {
+            stacked:
+                '<fieldset>' +
+                '    <legend><%- data.title %></legend>' +
+                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                '</fieldset>',
+            inline: '<tr></tr>'
+        }
     });
 
     editors.List = editors._Composite.extend({
-        template: 'editor-list',
+        templateId: 'editor-list',
         fieldRegion: '.items',
         headRegion: 'thead',
 
@@ -501,14 +614,36 @@ NS.UI = (function(ns) {
             }, this);
             view.render().done(doneCallback);
         }
+    }, {
+        templateSrc: {
+            stacked:
+                '<div>' +
+                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                '    <div class="items"></div>' +
+                '    <button type="button" class="btn add-item">Add</button>' +
+                '</div>',
+            inline:
+                '<div>' +
+                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                '    <table class="form-inline">' +
+                '        <thead></thead>' +
+                '        <tbody class="items"></tbody>' +
+                '    </table>' +
+                '    <button type="button" class="btn add-item">Add</button>' +
+                '</div>'
+        }
     });
 
-    editors.List.Header = eCollection.utilities.BaseView.extend({
-        prefix: BaseEditor.prototype.prefix,
-        template: 'editor-listheader',
+    editors.List.Header = BaseView.extend({
+        templateId: 'editor-listheader',
 
         serialize: function() {
             return ('headers' in this.options) ? _.pick(this.options, 'headers') : {headers: []};
+        }
+    }, {
+        templateSrc: {
+            stacked: '<tr><% _.each(data.headers, function(header) { %><th><% if (header.required) { %><b>*</b> <% } %><%- header.label %></th><% }); %></tr>',
+            inline: ''
         }
     });
 
@@ -587,7 +722,7 @@ NS.UI = (function(ns) {
     });
 
     ns.Form = editors.NestedModel.extend({
-		template: 'form',
+		templateId: 'form',
 
         events: {
             'submit': 'onSubmit',
@@ -650,6 +785,19 @@ NS.UI = (function(ns) {
                 this.trigger('submit:invalid', this.errors);
             }
         }
+    }, {
+        templateSrc: {
+            stacked:
+                '<form class="<% if (data.inline) { %>form-inline<% } else { %>form-horizontal<% } %>">' +
+                '    <h3><%- data.title %></h3>' +
+                '    <div class="form-content"></div>' +
+                '    <div class="form-actions">' +
+                '       <input type="submit" class="btn btn-primary" /> <input type="reset" class="btn" />' +
+                '    </div>' +
+                '</form>',
+            inline: ''
+        },
+        editors: editors  // Keep a reference to editor classes in order to allow templateSrc customization
     });
 
     return ns;

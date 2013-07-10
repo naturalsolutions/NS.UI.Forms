@@ -93,8 +93,7 @@ As an example, this validator is enabled when you mark a field as `required`:
 You can easily implement your custom validators. For example, if you want to
 ensure a number is positive, you would declare a validator like so:
 
-    // Place this code after Form library has loaded and before you initialize
-    // your form
+    // Place this code after Form library has loaded and before you initialize your form
 	NS.UI.Form.validators.Positive = function() {
 		this.validate = function(value) {
 			if (value < 0)
@@ -122,7 +121,24 @@ If your form is initialized with a `model` instance, you can use Backbone's [`de
 
 #### How do I customize editors' template? ####
 
-TODO
+Every editor has a `templateSrc` static property with holds two template string, one for stacked mode and another for inline mode. You are free to change these strings in order to customize UI. Use the original template string as a model.
+
+In the following example, we leverage this feature to enable HTML5's `<input type="number">` for Number editor in stacked mode:
+
+    // Place this code after Form library has loaded and before you initialize your form
+    NS.UI.Form.editors.Number.templateSrc.stacked = 
+        '<div class="control-group">' +
+        '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+        '    <div class="controls">' +
+        '        <input type="number" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+        '        <div class="help-inline"></div>' +
+        '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+        '    </div>' +
+        '</div>';
+
+Note that all properties returned by `serialize()` are available through an object named `data`. This is because we use Underscore's `template()` with the `variable` option.
+
+Of course, you can (and you are encouraged to) use your own template loading method. If your template loading mechanism is asynchronous, you will need to ensure that loading is over before initializing the form (hint: jQuery's [deferred objects](http://api.jquery.com/jQuery.Deferred/)).
 
 #### How do I write a custom editor? ####
 

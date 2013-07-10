@@ -121,7 +121,7 @@ If your form is initialized with a `model` instance, you can use Backbone's [`de
 
 #### How do I customize editors' template? ####
 
-Every editor has a `templateSrc` static property with holds two template string, one for stacked mode and another for inline mode. You are free to change these strings in order to customize UI. Use the original template string as a model.
+Every editor has a `templateSrc` static property with holds two template strings, one for stacked mode and another for inline mode. You are free to change these strings in order to customize UI. Use the original template string as a model.
 
 In the following example, we leverage this feature to enable HTML5's `<input type="number">` for Number editor in stacked mode:
 

@@ -69,6 +69,51 @@ TODO
 
 TODO
 
+### Validation ###
+
+Validation is triggered whenever a `blur` event occurs on a field. The
+validation process runs every declared validator for each field and intercepts
+`ValidationError` if any.
+
+A `validator` is an object with a `validation()` method which takes the value
+to validate as an arguments. This method either returns the validated (and
+optionnaly cleaned) value or raises an exception.
+
+As an example, this validator is enabled when you mark a field as `required`:
+
+	NS.UI.Form.validators.Required = function() {
+		this.msg = 'Blank value not allowed here';
+		this.validate = function(value) {
+			if (typeof value === 'undefined')
+                throw new ValidationError(this.msg);
+            return value;
+		};
+	};
+
+You can easily implement your custom validators. For example, if you want to
+ensure a number is positive, you would declare a validator like so:
+
+    // Place this code after Form library has loaded and before you initialize
+    // your form
+	NS.UI.Form.validators.Positive = function() {
+		this.validate = function(value) {
+			if (value < 0)
+                throw new NS.UI.Form.ValidationError('Positive value is expected here');
+            return value;
+		};
+	};
+
+Then, you can enable this validator in your `schema` declaration:
+
+    Person = Backbone.Model.extend({
+        ...
+    }, {
+        schema: {
+            age: {title: 'Age', type: 'Number', validators: ['Positive']},
+            ...
+        }
+    });
+
 ### Not so FAQ ###
 
 #### How do I set a default value? ####

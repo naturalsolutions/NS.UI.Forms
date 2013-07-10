@@ -40,7 +40,7 @@ NS.UI = (function(ns) {
 		this.msg = 'A number is expected here';
 		this.validate = function(value) {
 			if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value))
-				return value;
+				return parseFloat(value);
 			throw new ValidationError(this.msg);
 		};
 	};
@@ -60,9 +60,7 @@ NS.UI = (function(ns) {
      * Base class for all editors
      */
     var BaseEditor = BaseView.extend({
-        validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'inline'],
-
-		validators: [],
+        validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'inline', 'validators'],
 
 		defaults: {
             helpText: '',
@@ -74,6 +72,8 @@ NS.UI = (function(ns) {
             BaseView.prototype.initialize.apply(this, arguments);
             _.defaults(options, this.defaults);
             _.extend(this, _.pick(options, this.validOptions));
+            if (!('validators' in options))
+                this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
             if (this.required) this.validators.push(new validators.Required());
         },
 
@@ -178,10 +178,9 @@ NS.UI = (function(ns) {
     });
 
     editors.Number = editors.Text.extend({
-		validators: [new validators.Number()],
-
-		postProcessData: function (rawData) {
-			return parseFloat(rawData);
+		initialize: function () {
+            editors.Text.prototype.initialize.apply(this, arguments);
+            this.validators.unshift('Number');
         }
 	});
 
@@ -799,6 +798,10 @@ NS.UI = (function(ns) {
         },
         editors: editors  // Keep a reference to editor classes in order to allow templateSrc customization
     });
+
+    // Expose validation related objects, so that user can extend it
+    ns.Form.ValidationError = ValidationError;
+    ns.Form.validators = validators;
 
     return ns;
 })(NS.UI || {});

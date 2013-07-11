@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>NS.UI.Forms demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="../bootstrap-2.3.1/css/bootstrap.min.css" />
+    <style type="text/css">
+        .control-label > b, .form-inline th b {color: red; font-weight: bold;}
+        .controls > .help-block {color: #777; font-family: serif; font-style: italic;}
+        table.form-inline {border-collapse: collapse; border-spacing: 0; margin: 1em;}
+        .form-inline th, .form-inline td {line-height: 20px; padding: 2px 8px; vertical-align: top;}
+        .form-inline .help-inline {display: block;}
+    </style>
+    <script type="text/javascript" src="../jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="../underscore-1.4.4/underscore.min.js"></script>
+    <script type="text/javascript" src="../backbone-1.0/backbone.min.js"></script>
+    <script type="text/javascript" src="../backbone.layoutmanager-0.8.4.js"></script>
+    <script type="text/javascript" src="./forms.js"></script>
+    <script type="text/javascript">
+    $(function() {
+        // 1) Declare a model class
+        var MyModel = Backbone.Model.extend({
+                // Code whatever behaviour you need at instance level
+            }, {
+                // Declare schema and verbose name at model level
+                schema: {
+                    id: {title: 'ID', type: 'Number', editable: false},
+                    name: {title: 'Name', type: 'Text', required: true}
+                },
+                verboseName: 'My model'
+            }),
+
+            // 2) Instantiate that model
+            instance = new MyModel(),
+
+            // 3) Create a form for that instance
+            form = new NS.UI.Form({initialData: instance});
+
+        // 3bis) You will usually want to code what to do with validated data
+        form.on('submit:valid', function(instance) {
+            if (console) {
+                console.log(instance);
+            } else {
+                alert('form is valid');
+            }
+            // You may want to do something like:
+            // instance.save();
+        });
+
+        // 4) Render the form
+        form.render().done(function(view) {
+            $('body').append(view.el);
+        });
+    });
+    </script>
+</head>
+<body>
+</body>
+</html>

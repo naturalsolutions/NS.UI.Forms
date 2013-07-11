@@ -14,7 +14,21 @@ Work in progress, use at your own risk...
 * Classic stacked layout (one field per line) or inline layout (useful for tabular list of related objects)
 * Extendable, customizable
 
+## Example ##
+
+The file `demo.html` shows the basic setup.
+
 ## Documentation (draft) ##
+
+### Overview ###
+
+A **form** is a regular Backbone **view** which provides an editing UI for a **model instance**. The form engine will read the **model schema** of that instance and create an **editor** for every editable attribute.
+
+### Dependencies ###
+
+NS.UI.Forms depends on [BackboneJS](http://backbonejs.org/) and [LayoutManager](https://github.com/tbranyen/backbone.layoutmanager/).
+
+The HTML tags and CSS classes in the default templates designed for use with [Twitter Bootstrap](http://twitter.github.io/bootstrap/). But you can override these templates if you use an other UI framework.
 
 ### Configuration ###
 
@@ -34,6 +48,8 @@ Forms are generate automatically based on your schema declaration:
 The `schema` object provides configuration options for each model attributes.
 
 ### Supported editors ###
+
+The library include several editors which fall into two categories: simple editors allow the user to input a single values whereas composite editors represent complex, multi-value structure and delegates input to sub-editors.
 
 #### Text ####
 
@@ -68,6 +84,14 @@ TODO
 #### MultiSchema ####
 
 TODO
+
+### Rendering ###
+
+Editors can be rendered in stacked or inline mode.
+
+The stacked mode is the default one. Labels are on the left and input fields on the right. Each editor is displayed on its own line.
+
+Inline mode may be used to create editable list of objects. The form is displayed as a grid, labels appear as column headers and one row is created for each instance. Input fields are chained horizontally as row cells.
 
 ### Validation ###
 

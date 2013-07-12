@@ -269,7 +269,13 @@ NS.UI = (function(ns) {
         initialize: function(options) {
 			this.validOptions = this.validOptions.concat(['multiple']);
             if (!('initialData' in options) || (typeof(options.initialData) === 'undefined')) {
-                options.initialData = [];
+                if ('defaultValue' in options) {
+                    if (!_.isArray(options.defaultValue))
+                        options.defaultValue = [options.defaultValue];
+                    options.initialData = options.defaultValue;
+                } else {
+                    options.initialData = [];
+                }
             // Store data in array even when select is not 'multiple'
             } else if (!_.isArray(options.initialData)) {
                 options.initialData = [options.initialData];

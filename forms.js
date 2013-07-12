@@ -266,8 +266,12 @@ NS.UI = (function(ns) {
 
         nullValue: '',
 
+        events: {
+            'blur select': function(e) {this.validate();}
+        },
+
         initialize: function(options) {
-			this.validOptions = this.validOptions.concat(['multiple']);
+			this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
             if (!('initialData' in options) || (typeof(options.initialData) === 'undefined')) {
                 if ('defaultValue' in options) {
                     if (!_.isArray(options.defaultValue))
@@ -346,9 +350,19 @@ NS.UI = (function(ns) {
 					}
                 });
             }
-            if (!this.required && !this.multiple) options.unshift({val: '', label: '--'});
+            if (!this.multiple) options.unshift({val: this.nullValue, label: '--'});
             viewData.options = [{label: '', options: options}];
             return viewData;
+        },
+
+		clearValidationErrors: function () {
+			BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
+            this.$el.find('.help-inline').html('');
+		},
+
+		handleValidationError: function (err) {
+			BaseEditor.prototype.handleValidationError.apply(this, arguments);
+            this.$el.find('.help-inline').html(err.message);
         }
     }, {
         templateSrc: {

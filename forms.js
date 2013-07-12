@@ -754,6 +754,10 @@ NS.UI = (function(ns) {
                     id: (instance.isNew()) ? this.defaults.id : 'form_' + instance.id,
                     label: (instance.isNew()) ? 'New ' + instance.constructor.verboseName.toLowerCase() : instance.constructor.verboseName + ' ' + instance.id
                 });
+            } else if (options.model) {
+                this.defaults = _.extend({}, this.defaults, {
+                    label: 'New ' + options.model.verboseName.toLowerCase()
+                });
             }
 
             editors.NestedModel.prototype.initialize.call(this, options);

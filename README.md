@@ -139,9 +139,40 @@ Then, you can enable this validator in your `schema` declaration:
 
 ### Not so FAQ ###
 
-#### How do I set a default value? ####
+#### How do I set a default value for a field? ####
 
-If your form is initialized with a `model` instance, you can use Backbone's [`defaults`](http://backbonejs.org/#Model-defaults) option. Otherwise, the form's `initialData` may be an option. There is currently no option to set a default value directly in the `schema` definition.
+There is several alternative ways to achieve this:
+
+1. If your form is initialized with a `model` instance, you can use Backbone's [`defaults`](http://backbonejs.org/#Model-defaults) option.
+2. If you prefer setting a default value per instance, you can simply fill it in the corresponding attribute on the instance before passing it to the form's `initialData`.
+3. You may also declare a `defaultValue` option in the `schema` definition.
+
+Examples:
+
+    // Solution 1
+    MyModel = Backbone.Model.extend({
+        defaults: {
+            name: 'A default name...'
+        }
+    }, {
+        schema: {
+            name: {title: 'Name', type: 'Text'}
+        },
+        verboseName: 'My model'
+    });
+
+    // Solution 2
+    if (! instance.has('name'))
+        instance.set({name: 'A default name...'});
+    form = new NS.UI.Form({initialData: instance});
+
+    // Solution 3
+    MyModel = Backbone.Model.extend({}, {
+        schema: {
+            name: {title: 'Name', type: 'Text', defaultValue: 'A default name...'}
+        },
+        verboseName: 'My model'
+    });
 
 #### How do I customize editors' template? ####
 

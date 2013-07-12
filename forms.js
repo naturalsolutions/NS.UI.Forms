@@ -71,6 +71,8 @@ NS.UI = (function(ns) {
         initialize: function(options) {
             BaseView.prototype.initialize.apply(this, arguments);
             _.defaults(options, this.defaults);
+            if (!('initialData' in options) && ('defaultValue' in options))
+                options.initialData = options.defaultValue;
             _.extend(this, _.pick(options, this.validOptions));
             if (!('validators' in options))
                 this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
@@ -495,7 +497,8 @@ NS.UI = (function(ns) {
 			var fields = [];
 			_.each(this.fields, function(name) {
 				var field = this.schema[name];
-				field.initialData = this.initialData[name];
+				if (name in this.initialData)
+					field.initialData = this.initialData[name];
 				field.inline = field.inline || this.inline;
 
 				var editor = editors[field.type];

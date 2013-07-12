@@ -34,7 +34,7 @@ The HTML tags and CSS classes in the default templates designed for use with [Tw
 
 Forms are generate automatically based on your schema declaration:
 
-    MyModel = Backbone.Model.extend({
+    var MyModel = Backbone.Model.extend({
         // Put whatever you need at instance level
     }, {
         // Declare schema and verbose name at model level
@@ -45,7 +45,24 @@ Forms are generate automatically based on your schema declaration:
         verboseName: 'My model'
     });
 
-The `schema` object provides configuration options for each model attributes.
+The `schema` object provides configuration options for each model attributes. The `verboseName` may be used as a form title.
+
+Note that the field order in the displayed form will be the same as in the schema declaration.
+
+The form works with an underlying model instance: it will read initial values and write user inputs into that instance. You have two options for binding a form and its instance:
+
+    // Option 1: pass it an existing instance
+    var instance = new MyModel(),
+        form = new NS.UI.Form({initialData: instance});
+
+    // Option 2: pass it a model class and let the model create an instance itself
+    var form = new NS.UI.Form({model: MyModel});
+
+Finally you will have to code what to do when the user validates the form. To do so, write an handler for the `submit:valid` event. This handler will be passed the updated instance as an argument:
+
+    form.on('submit:valid', function(instance) {
+        ...
+    });
 
 ### Supported editors ###
 
@@ -72,6 +89,15 @@ Set a field's type as `Select` and it will be presented using a classic HTML dro
 You can actually mix the literal values and plain objects in the same array.
 
 Use the `multiple` option to enable or disable multiple selection.
+
+Example:
+
+    schema: {
+        ...,
+        habitat: {title: 'Habitat', type: 'Select', options: ['Wall', 'Hedge', {val: 'Path', label:'Path or track'}]},
+        ...
+    }
+
 
 #### NestedModel ####
 

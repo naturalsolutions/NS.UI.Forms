@@ -516,7 +516,7 @@ NS.UI = (function(ns) {
 		getFields: function () {
 			var fields = [];
 			_.each(this.fields, function(name) {
-				var field = this.schema[name];
+				var field = _.clone(this.schema[name]);
 				if (name in this.initialData)
 					field.initialData = this.initialData[name];
 				field.inline = field.inline || this.inline;

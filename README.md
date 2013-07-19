@@ -32,6 +32,8 @@ The HTML tags and CSS classes in the default templates designed for use with [Tw
 
 ### Configuration ###
 
+#### Explicit model schema ####
+
 Forms are generate automatically based on your schema declaration:
 
     var MyModel = Backbone.Model.extend({
@@ -49,6 +51,8 @@ The `schema` object provides configuration options for each model attributes. Th
 
 Note that the field order in the displayed form will be the same as in the schema declaration.
 
+#### Get the data back ####
+
 The form works with an underlying model instance: it will read initial values and write user inputs into that instance. You have two options for binding a form and its instance:
 
     // Option 1: pass it an existing instance
@@ -63,6 +67,14 @@ Finally you will have to code what to do when the user validates the form. To do
     form.on('submit:valid', function(instance) {
         ...
     });
+
+#### Controlling which fields are displayed ####
+
+The optional `fields` arguments let you choose which fields are included in the form. Pass it an array containing either of the following:
+- field name as a string (the key of the `schema` object),
+- an object exposing `title` and `fields` properties.
+
+The later option will produce a fieldset using `title` as the legend. The `fields` property is a nested field list.
 
 ### Supported editors ###
 
@@ -101,7 +113,20 @@ Example:
 
 #### NestedModel ####
 
-TODO
+Use the `NestedModel` type for complex attributes.
+
+Example:
+
+    schema: {
+        ...,
+        address: {title: 'Address', type: 'NestedModel', model: Address},
+        ...
+    }
+
+You have three options to describe your complex attribute:
+- pass a Backbone Model class in the `model` argument, the validation process will return a new instance of that model;
+- pass a Backbone Model instance in the `initialData` argument, the validation process will return that instance modified;
+- pass a raw schema definition object in the `schema` argument and optionnally a hash of values in the `initialData` argument, the validation process will return a hash for user inputs.
 
 #### List ####
 

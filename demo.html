@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>NS.UI.Forms demo</title>
@@ -19,23 +19,37 @@
     <script type="text/javascript" src="./forms.js"></script>
     <script type="text/javascript">
     $(function() {
-        // 1) Declare a model class
-        var MyModel = Backbone.Model.extend({
+        // 1) Declare your model classes
+        var Address = Backbone.Model.extend({
                 // Code whatever behaviour you need at instance level
             }, {
                 // Declare schema and verbose name at model level
                 schema: {
-                    id: {title: 'ID', type: 'Number', editable: false},
-                    name: {title: 'Name', type: 'Text', required: true}
+                    street: {title: 'Street name', type: 'Text'},
+                    housenumber: {title: 'House number', type: 'Text'},
+                    city: {title: 'City', type: 'Text'}
                 },
-                verboseName: 'My model'
+                verboseName: 'Address'
+            }),
+            Person = Backbone.Model.extend({}, {
+                schema: {
+                    id: {title: 'ID', type: 'Number', editable: false},
+                    title: {title: 'Title', type: 'Select', required: true, options: ['Miss', 'Mrs', 'Mr', 'Ms']},
+                    fName: {title: 'First name', type: 'Text'},
+                    lName: {title: 'Last name', type: 'Text', required: true},
+                    address: {title: 'Address', type: 'NestedModel', model: Address, required: true},
+                    job: {title: 'Job', type: 'Text'},
+                    sports: {title: 'Sports', type: 'Text'},
+                    comments: {title: 'Any comment ?', type: 'Text'}
+                },
+                verboseName: 'Person'
             }),
 
-            // 2) Instantiate that model
-            instance = new MyModel(),
+            // 2) Instantiate that model or use an existing instance
+            instance = new Person(),
 
             // 3) Create a form for that instance
-            form = new NS.UI.Form({initialData: instance});
+            form = new NS.UI.Form({initialData: instance, fields: [{title: 'Identification', fields: ['title', 'fName', 'lName', 'address']}, {title: 'Activities', fields: ['job', 'sports']}, 'comments']});
 
         // 3bis) You will usually want to code what to do with validated data
         form.on('submit:valid', function(instance) {

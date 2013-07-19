@@ -513,20 +513,36 @@ NS.UI = (function(ns) {
             editors._Composite.prototype.initialize.apply(this, arguments);
         },
 
-		getFields: function () {
-			var fields = [];
-			_.each(this.fields, function(name) {
-				var field = _.clone(this.schema[name]);
-				if (name in this.initialData)
-					field.initialData = this.initialData[name];
-				field.inline = field.inline || this.inline;
+        getFields: function () {
+            var fields = [];
+            this.fieldsets = {};
+            _.each(this.fields, function(field) {
+                var fieldDef, name;
+                if (_.isObject(field)) {
+                    // Fieldset
+                    name = _.uniqueId(this.name);
+                    fieldDef = {
+                        title: field.title,
+                        type: 'NestedModel',
+                        initialData: this.instance || this.initialData,
+                        fields: field.fields
+                    };
+                    this.fieldsets[name] = true;
+                } else {
+                    // Regular fields
+                    name = field;
+                    fieldDef = _.clone(this.schema[name]);;
+                    if (name in this.initialData)
+                        fieldDef.initialData = this.initialData[name];
+                }
+                fieldDef.inline = fieldDef.inline || this.inline;
 
-				var editor = editors[field.type];
-				if (editor)
-					fields.push({name: name, editor: editor, options: field});
-			}, this);
-			return fields;
-		},
+                var editor = editors[fieldDef.type];
+                if (editor)
+                    fields.push({name: name, editor: editor, options: fieldDef});
+            }, this);
+            return fields;
+        },
 
         getLabel: function() {
             var labels = [];
@@ -536,6 +552,25 @@ NS.UI = (function(ns) {
                 }
             });
             return labels;
+        },
+
+        onFieldValidate: function(fieldName, data) {
+            if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
+                var idx = this.names[fieldName];
+                if (!(idx in this.fieldsets))
+                    this.data[idx] = data;
+                // forget previous validation errors if any
+                delete this.errors[fieldName];
+                if ($.isEmptyObject(this.errors))
+                    this.trigger('valid:pass', this.name, this.postProcessData(this.data));
+            }
+        },
+
+        onFieldError: function(fieldName, error) {
+            if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
+                this.errors[fieldName] = error;
+                return this.trigger('valid:fail', this.name, this.errors);
+            }
         },
 
 		postProcessData: function (rawData) {

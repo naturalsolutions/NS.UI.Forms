@@ -557,7 +557,7 @@ NS.UI = (function(ns) {
         onFieldValidate: function(fieldName, data) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
                 var idx = this.names[fieldName];
-                if (!(idx in this.fieldsets))
+                if (!(this.fieldsets && (idx in this.fieldsets)))
                     this.data[idx] = data;
                 // forget previous validation errors if any
                 delete this.errors[fieldName];
@@ -705,6 +705,7 @@ NS.UI = (function(ns) {
     });
 
     editors.MultiSchema = editors.NestedModel.extend({
+        // TODO: not compatible with fieldsets...
         initialize: function(options) {
             this.validOptions = this.validOptions.concat(['schemas', 'selector']);
 

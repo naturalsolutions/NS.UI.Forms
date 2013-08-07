@@ -417,7 +417,10 @@ NS.UI = (function(ns) {
                         .datepicker('setValue', this.initialData)
                         .on('changeDate', _.bind(function(ev) {
                             this._val = ev.date;
-                            if (ev.viewMode == 'days') this.$dp.datepicker('hide');
+                            if (ev.viewMode == 'days') {
+                                this.$dp.datepicker('hide');
+                                this.$dp.trigger('blur');
+                            }
                         }, view));
             });
         },

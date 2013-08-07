@@ -39,6 +39,7 @@
                     title: {title: 'Title', type: 'Select', required: true, options: ['Miss', 'Mrs', 'Mr', 'Ms']},
                     fName: {title: 'First name', type: 'Text'},
                     lName: {title: 'Last name', type: 'Text', required: true},
+                    dob: {title: 'Date of birth', type: 'Date', format: 'm/d/yy'},
                     address: {title: 'Address', type: 'NestedModel', model: Address, required: true},
                     job: {title: 'Job', type: 'Text'},
                     sports: {title: 'Sports', type: 'Text'},
@@ -51,7 +52,7 @@
             instance = new Person(),
 
             // 3) Create a form for that instance
-            form = new NS.UI.Form({initialData: instance, fields: [{title: 'Identification', fields: ['title', 'fName', 'lName', 'address']}, {title: 'Activities', fields: ['job', 'sports']}, 'comments']});
+            form = new NS.UI.Form({initialData: instance, fields: [{title: 'Identification', fields: ['title', 'fName', 'lName', 'dob', 'address']}, {title: 'Activities', fields: ['job', 'sports']}, 'comments']});
 
         // 3bis) You will usually want to code what to do with validated data
         form.on('submit:valid', function(instance) {

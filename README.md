@@ -94,6 +94,14 @@ TODO
 
 TODO
 
+#### Date ####
+
+Set a field type as `Date` and form engine will display a calendar widget to pick a date. The default date format is `'dd/mm/yyyy'` but you can override it by passing a `format` option in your schema declaration.
+
+Your data (either `initialData` or a model attribute) must be typed as a regular JavaScript `Date` object. The editor will also parse the user input and return a regular `Date` object.
+
+NB: The Datepicker Bootstrap extension is required for this to work.
+
 #### Select ####
 
 Set a field's type as `Select` and it will be presented using a classic HTML dropdown list. You can feed the select's options with:

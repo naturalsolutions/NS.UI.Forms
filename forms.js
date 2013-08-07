@@ -397,6 +397,59 @@ NS.UI = (function(ns) {
         }
     });
 
+	editors.Date = BaseEditor.extend({
+        templateId: 'editor-date',
+
+        format: 'dd/mm/yyyy',
+
+        events: {
+            'blur input': function(e) {this.validate();},
+            'click span.add-on': function(e) {this.$dp.datepicker('show');}
+        },
+
+        initialize: function() {
+			this.validOptions = this.validOptions.concat(['format']);
+            BaseEditor.prototype.initialize.apply(this, arguments);
+            this._val = this.initialData;
+            this.on('afterRender', function(view) {
+                view.$dp = view.$el.find('input');
+                view.$dp.datepicker({format: this.format})
+                        .datepicker('setValue', this.initialData)
+                        .on('changeDate', _.bind(function(ev) {
+                            this._val = ev.date;
+                            if (ev.viewMode == 'days') this.$dp.datepicker('hide');
+                        }, view));
+            });
+        },
+
+        getValue: function() {
+            return this._val;
+        }
+    }, {
+        templateSrc: {
+            stacked:
+                '<div class="control-group">' +
+                '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                '    <div class="controls">' +
+                '        <div class="input-append date">' +
+                '            <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
+                '            <span class="add-on"><i class="icon-calendar"></i></span>' +
+                '        </div>' +
+                '        <div class="help-inline"></div>' +
+                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                '    </div>' +
+                '</div>',
+            inline:
+                '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
+                '    <div class="input-append date">' +
+                '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
+                '        <span class="add-on"><i class="icon-calendar"></i></span>' +
+                '    </div>' +
+                '    <div class="help-inline"></div>' +
+                '</td>'
+        }
+    });
+
 	editors._Composite = BaseEditor.extend({
         // Selector for field area (an element in the template where items will be placed)
         fieldRegion: '',

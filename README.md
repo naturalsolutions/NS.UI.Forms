@@ -30,6 +30,8 @@ NS.UI.Forms depends on [BackboneJS](http://backbonejs.org/) and [LayoutManager](
 
 The HTML tags and CSS classes in the default templates designed for use with [Twitter Bootstrap](http://twitter.github.io/bootstrap/). But you can override these templates if you use an other UI framework.
 
+If you want to use the `date` editor, you will additionnaly need to load the Bootstrap Datepicker extension. A compatible version, untouched, is provided along with `forms.js`.
+
 ### Configuration ###
 
 #### Explicit model schema ####

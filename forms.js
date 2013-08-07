@@ -413,8 +413,7 @@ NS.UI = (function(ns) {
             this._val = this.initialData;
             this.on('afterRender', function(view) {
                 view.$dp = view.$el.find('input');
-                view.$dp.datepicker({format: this.format})
-                        .datepicker('setValue', this.initialData)
+                view.$dp.datepicker({format: view.format})
                         .on('changeDate', _.bind(function(ev) {
                             this._val = ev.date;
                             if (ev.viewMode == 'days') {
@@ -422,6 +421,8 @@ NS.UI = (function(ns) {
                                 this.$dp.trigger('blur');
                             }
                         }, view));
+                if (view.initialData)
+                    view.$dp.datepicker('setValue', view.initialData)
             });
         },
 

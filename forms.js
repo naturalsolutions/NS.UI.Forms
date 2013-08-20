@@ -502,7 +502,10 @@ NS.UI = (function(ns) {
 
 		addEditor: function (name, Editor, options) {
 			// Do not proceed for readonly fields
-			if ('editable' in options && !options.editable) return;
+			if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable)) return;
+			if (Editor == editors.Select && _.isFunction(options.options)) {
+				options.options = _.bind(options.options, this.initialData);
+			}
 			// Instantiate a subview for this editor + make names/identifiers unique
 			var view = new Editor(_.extend({}, options, {
 				id: this.id + '_' + name,

@@ -480,7 +480,7 @@ NS.UI = (function(ns) {
 
 		addEditor: function (name, Editor, options) {
 			// Do not proceed for readonly fields
-			if ('editable' in options && !options.editable ) return;
+			if ('editable' in options && !options.editable) return;
 			// Instantiate a subview for this editor + make names/identifiers unique
 			var view = new Editor(_.extend({}, options, {
 				id: this.id + '_' + name,
@@ -588,7 +588,7 @@ NS.UI = (function(ns) {
                 } else {
                     // Regular fields
                     name = field;
-                    fieldDef = _.clone(this.schema[name]);;
+                    fieldDef = _.clone(this.schema[name]);
                     if (name in this.initialData)
                         fieldDef.initialData = this.initialData[name];
                 }

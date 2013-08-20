@@ -311,6 +311,8 @@ NS.UI = (function(ns) {
                     // There is no initial data but the browser will select the first option anyway
                     if (optionConfig instanceof Backbone.Collection) {
                         return [optionConfig.at(0).id];
+                    } else if ('options' in optionConfig[0]) { //optgroup
+                        return [optionConfig[0].options[0].val]
                     } else {
                         return [optionConfig[0].val]
                     }
@@ -335,23 +337,33 @@ NS.UI = (function(ns) {
 
         serialize: function() {
             var viewData = BaseEditor.prototype.serialize.apply(this, arguments);
-            var options = [];
+            var options;
             var optionConfig = _.result(this, 'optionConfig');
             if (optionConfig instanceof Backbone.Collection) {
-                optionConfig.each(function(item) {
-                    options.push({val: item.id, label: item.toString()});
+                options = optionConfig.map(function(item) {
+                    return {val: item.id, label: item.toString()};
                 });
             } else {
-                _.each(optionConfig, function(item) {
+                options = _.map(optionConfig, function(item) {
 					if (typeof(item) == 'object') {
-						options.push(item);
+                        if ('options' in item) {
+                            // optgroup
+                            return {
+                                label: item.label,
+                                options: _.map(item.options, function(subitem) {
+                                    return typeof(subitem) == 'object' ? subitem : {val: subitem, label: subitem};
+                                })
+                            };
+                        } else {
+                            return item;
+                        }
 					} else {
-						options.push({val: item, label: item});
+						return {val: item, label: item};
 					}
                 });
             }
             if (!this.multiple) options.unshift({val: this.nullValue, label: '--'});
-            viewData.options = [{label: '', options: options}];
+            viewData.options = options;
             return viewData;
         },
 
@@ -371,11 +383,16 @@ NS.UI = (function(ns) {
                 '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '    <div class="controls">' +
                 '        <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
-                '            <% _.each(data.options, function(group) {' +
-                '                var isGroup = group.label != "";' +
-                '                if (isGroup) { %><optgroup label="<%- group.label %>"><% }' +
-                '                _.each(group.options, function(opt) { %><option value="<%- opt.val %>"<% if (_.contains(data.initialData, opt.val)) { %> selected="selected"<% } %>><%- opt.label %></option><% });' +
-                '                if (isGroup) { %></optgroup><% }' +
+                '            <% _.each(data.options, function(item) {' +
+                '                if (\'options\' in item) {' +
+                '                    %><optgroup label="<%- item.label %>"><%' +
+                '                    _.each(item.options, function(subitem) {' +
+                '                        %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
+                '                    });' +
+                '                    %></optgroup><%' +
+                '                } else {' +
+                '                    %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
+                '                }' +
                 '            }); %>' +
                 '        </select>' +
                 '        <div class="help-inline"></div>' +
@@ -385,11 +402,16 @@ NS.UI = (function(ns) {
             inline:
                 '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
                 '    <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
-                '        <% _.each(data.options, function(group) {' +
-                '            var isGroup = group.label != "";' +
-                '            if (isGroup) { %><optgroup label="<%- group.label %>"><% }' +
-                '            _.each(group.options, function(opt) { %><option value="<%- opt.val %>"<% if (_.contains(data.initialData, opt.val)) { %> selected="selected"<% } %>><%- opt.label %></option><% });' +
-                '            if (isGroup) { %></optgroup><% }' +
+                '        <% _.each(data.options, function(item) {' +
+                '            if (\'options\' in item) {' +
+                '                %><optgroup label="<%- item.label %>"><%' +
+                '                _.each(item.options, function(subitem) {' +
+                '                    %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
+                '                });' +
+                '                %></optgroup><%' +
+                '            } else {' +
+                '                %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
+                '            }' +
                 '        }); %>' +
                 '    </select>' +
                 '    <div class="help-inline"></div>' +

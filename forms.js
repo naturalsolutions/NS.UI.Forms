@@ -259,19 +259,16 @@ NS.UI = (function(ns) {
         }
     });
 
-	editors.Select = BaseEditor.extend({
-        templateId: 'editor-select',
+    editors.CheckBox = BaseEditor.extend({
+        templateId: 'editor-checkbox',
 
-        multiple: false,
-
-        nullValue: '',
+        multiple: true,
 
         events: {
-            'blur select': function(e) {this.validate();}
+            'blur input': function(e) {this.validate();}
         },
 
         initialize: function(options) {
-			this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
             if (!('initialData' in options) || (typeof(options.initialData) === 'undefined')) {
                 if ('defaultValue' in options) {
                     if (!_.isArray(options.defaultValue))
@@ -295,10 +292,10 @@ NS.UI = (function(ns) {
 
         getValue: function() {
             if (this.$el) {
-                var val = this.$el.find('select').val();
-                if (val === this.nullValue || val === null) return undefined;
-                if (! this.multiple) return [val];
-                return val;
+                var val = this.$el.find(':checked').map(function () {
+                    return $(this).val();
+                }).get();
+                if (val.length > 0) return val;
             }
         },
 
@@ -362,7 +359,6 @@ NS.UI = (function(ns) {
 					}
                 });
             }
-            if (!this.multiple) options.unshift({val: this.nullValue, label: '--'});
             viewData.options = options;
             return viewData;
         },
@@ -376,6 +372,71 @@ NS.UI = (function(ns) {
 			BaseEditor.prototype.handleValidationError.apply(this, arguments);
             this.$el.find('.help-inline').html(err.message);
         }
+    }, {
+        templateSrc: {
+            stacked:
+                '<div class="control-group">' +
+                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                '    <div class="controls">' +
+                '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
+                '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
+                '        <% }}); %>' +
+                '        <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
+                '            <label class="label"><%- item.label %></label>' +
+                '            <% _.each(item.options, function(subitem) { %>' +
+                '                <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
+                '            <% }); %>' +
+                '        <% }}); %>' +
+                '        <div class="help-inline"></div>' +
+                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                '    </div>' +
+                '</div>',
+            inline:
+                '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                '    <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
+                '        <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
+                '    <% }}); %>' +
+                '    <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
+                '        <label class="label"><%- item.label %></label>' +
+                '        <% _.each(item.options, function(subitem) { %>' +
+                '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
+                '        <% }); %>' +
+                '    <% }}); %>' +
+                '    <div class="help-inline"></div>' +
+                '</td>'
+        }
+    });
+
+	editors.Select = editors.CheckBox.extend({
+        templateId: 'editor-select',
+
+        multiple: false,
+
+        nullValue: '',
+
+        events: {
+            'blur select': function(e) {this.validate();}
+        },
+
+        initialize: function(options) {
+			this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
+            editors.CheckBox.prototype.initialize.apply(this, arguments);
+        },
+
+        getValue: function() {
+            if (this.$el) {
+                var val = this.$el.find('select').val();
+                if (val === this.nullValue || val === null) return undefined;
+                if (! this.multiple) return [val];
+                return val;
+            }
+        },
+
+        serialize: function() {
+            var viewData = editors.CheckBox.prototype.serialize.apply(this, arguments);
+            if (!this.multiple) viewData.options.unshift({val: this.nullValue, label: '--'});
+            return viewData;
+        },
     }, {
         templateSrc: {
             stacked:
@@ -503,7 +564,7 @@ NS.UI = (function(ns) {
 		addEditor: function (name, Editor, options) {
 			// Do not proceed for readonly fields
 			if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable)) return;
-			if (Editor == editors.Select && _.isFunction(options.options)) {
+			if ((Editor == editors.Select || Editor == editors.CheckBox) && _.isFunction(options.options)) {
 				options.options = _.bind(options.options, this.initialData);
 			}
 			// Instantiate a subview for this editor + make names/identifiers unique

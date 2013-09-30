@@ -30,29 +30,29 @@ NS.UI = (function(ns) {
 
     var validators = {};
 
-	// Declare an exception class for validation errors
-	var ValidationError = function(error) {
+    // Declare an exception class for validation errors
+    var ValidationError = function(error) {
         this.message = error;
-	};
+    };
 
     // FIXME: use cleaner OOP for validators
-	validators.Number = function() {
-		this.msg = 'A number is expected here';
-		this.validate = function(value) {
-			if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value))
-				return parseFloat(value);
-			throw new ValidationError(this.msg);
-		};
-	};
+    validators.Number = function() {
+        this.msg = 'A number is expected here';
+        this.validate = function(value) {
+            if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value))
+                return parseFloat(value);
+            throw new ValidationError(this.msg);
+        };
+    };
 
-	validators.Required = function() {
-		this.msg = 'Blank value not allowed here';
-		this.validate = function(value) {
-			if (typeof value === 'undefined')
+    validators.Required = function() {
+        this.msg = 'Blank value not allowed here';
+        this.validate = function(value) {
+            if (typeof value === 'undefined')
                 throw new ValidationError(this.msg);
             return value;
-		};
-	};
+        };
+    };
 
     var editors = {};
 
@@ -62,7 +62,7 @@ NS.UI = (function(ns) {
     var BaseEditor = BaseView.extend({
         validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'inline', 'validators'],
 
-		defaults: {
+        defaults: {
             helpText: '',
             inline: false,
             required: false
@@ -86,9 +86,9 @@ NS.UI = (function(ns) {
         },
 
         getValue: function() {
-			// To be implemented by child classes
-			// must return parsed user input
-			return ;
+            // To be implemented by child classes
+            // must return parsed user input
+            return ;
         },
 
         getLabel: function() {
@@ -96,40 +96,40 @@ NS.UI = (function(ns) {
         },
 
         validate: function() {
-			var value = this.getValue();
-			this.clearValidationErrors();
-			try {
-				_.each(this.validators, function (validator) {
+            var value = this.getValue();
+            this.clearValidationErrors();
+            try {
+                _.each(this.validators, function (validator) {
                     if (this.required || typeof value != 'undefined') {
                         if (typeof validator === 'string') {
                             validator = new validators[validator]();
                         }
                         value = validator.validate(value);
                     }
-				}, this);
-			} catch (err) {
-				if (err instanceof ValidationError) {
-					this.handleValidationError(err);
+                }, this);
+            } catch (err) {
+                if (err instanceof ValidationError) {
+                    this.handleValidationError(err);
                     return this.trigger('valid:fail', this.name, err.message);
-				}
-			}
+                }
+            }
             return this.trigger('valid:pass', this.name, this.postProcessData(value));
-		},
+        },
 
-		clearValidationErrors: function () {
-			// May be implemented by child classes
-			this.$el.removeClass('error');
-		},
+        clearValidationErrors: function () {
+            // May be implemented by child classes
+            this.$el.removeClass('error');
+        },
 
-		handleValidationError: function (err) {
-			// May be implemented by child classes
-			this.$el.addClass('error');
-		},
+        handleValidationError: function (err) {
+            // May be implemented by child classes
+            this.$el.addClass('error');
+        },
 
-		postProcessData: function (rawData) {
-			// May be implemented by child classes
-			// must return formatted data
-			return rawData;
+        postProcessData: function (rawData) {
+            // May be implemented by child classes
+            // must return formatted data
+            return rawData;
         },
 
         serialize: function() {
@@ -144,15 +144,15 @@ NS.UI = (function(ns) {
             'blur input': function(e) {this.validate();}
         },
 
-		clearValidationErrors: function () {
-			BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
+        clearValidationErrors: function () {
+            BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             this.$el.find('.help-inline').html('');
-		},
+        },
 
-		handleValidationError: function (err) {
-			BaseEditor.prototype.handleValidationError.apply(this, arguments);
+        handleValidationError: function (err) {
+            BaseEditor.prototype.handleValidationError.apply(this, arguments);
             this.$el.find('.help-inline').html(err.message);
-		},
+        },
 
         getValue: function() {
             if (this.$el) {
@@ -180,27 +180,27 @@ NS.UI = (function(ns) {
     });
 
     editors.Number = editors.Text.extend({
-		initialize: function () {
+        initialize: function () {
             editors.Text.prototype.initialize.apply(this, arguments);
             this.validators.unshift('Number');
         }
-	});
+    });
 
     editors.Boolean = BaseEditor.extend({
         templateId: 'editor-boolean',
 
-		value_yes: 'yes',
-		value_no: 'no',
+        value_yes: 'yes',
+        value_no: 'no',
 
-		label_yes: 'Yes',
-		label_no: 'No',
+        label_yes: 'Yes',
+        label_no: 'No',
 
         events: {
             'blur input': function(e) {this.validate();}
         },
 
         initialize: function() {
-			this.validOptions = this.validOptions.concat(['label_yes', 'label_no', 'value_yes', 'value_no']);
+            this.validOptions = this.validOptions.concat(['label_yes', 'label_no', 'value_yes', 'value_no']);
             BaseEditor.prototype.initialize.apply(this, arguments);
         },
 
@@ -217,15 +217,15 @@ NS.UI = (function(ns) {
             }
         },
 
-		clearValidationErrors: function () {
-			BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
+        clearValidationErrors: function () {
+            BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             this.$el.find('.help-inline').html('');
-		},
+        },
 
-		handleValidationError: function (err) {
-			BaseEditor.prototype.handleValidationError.apply(this, arguments);
+        handleValidationError: function (err) {
+            BaseEditor.prototype.handleValidationError.apply(this, arguments);
             this.$el.find('.help-inline').html(err.message);
-		}
+        }
     }, {
         templateSrc: {
             stacked:
@@ -342,7 +342,7 @@ NS.UI = (function(ns) {
                 });
             } else {
                 options = _.map(optionConfig, function(item) {
-					if (typeof(item) == 'object') {
+                    if (typeof(item) == 'object') {
                         if ('options' in item) {
                             // optgroup
                             return {
@@ -354,22 +354,22 @@ NS.UI = (function(ns) {
                         } else {
                             return item;
                         }
-					} else {
-						return {val: item, label: item};
-					}
+                    } else {
+                        return {val: item, label: item};
+                    }
                 });
             }
             viewData.options = options;
             return viewData;
         },
 
-		clearValidationErrors: function () {
-			BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
+        clearValidationErrors: function () {
+            BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             this.$el.find('.help-inline').html('');
-		},
+        },
 
-		handleValidationError: function (err) {
-			BaseEditor.prototype.handleValidationError.apply(this, arguments);
+        handleValidationError: function (err) {
+            BaseEditor.prototype.handleValidationError.apply(this, arguments);
             this.$el.find('.help-inline').html(err.message);
         }
     }, {
@@ -407,7 +407,7 @@ NS.UI = (function(ns) {
         }
     });
 
-	editors.Select = editors.CheckBox.extend({
+    editors.Select = editors.CheckBox.extend({
         templateId: 'editor-select',
 
         multiple: false,
@@ -419,7 +419,7 @@ NS.UI = (function(ns) {
         },
 
         initialize: function(options) {
-			this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
+            this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
             editors.CheckBox.prototype.initialize.apply(this, arguments);
         },
 
@@ -436,7 +436,7 @@ NS.UI = (function(ns) {
             var viewData = editors.CheckBox.prototype.serialize.apply(this, arguments);
             if (!this.multiple) viewData.options.unshift({val: this.nullValue, label: '--'});
             return viewData;
-        },
+        }
     }, {
         templateSrc: {
             stacked:
@@ -480,7 +480,7 @@ NS.UI = (function(ns) {
         }
     });
 
-	editors.Date = BaseEditor.extend({
+    editors.Date = BaseEditor.extend({
         templateId: 'editor-date',
 
         format: 'dd/mm/yyyy',
@@ -491,7 +491,7 @@ NS.UI = (function(ns) {
         },
 
         initialize: function() {
-			this.validOptions = this.validOptions.concat(['format']);
+            this.validOptions = this.validOptions.concat(['format']);
             BaseEditor.prototype.initialize.apply(this, arguments);
             this._val = this.initialData;
             this.on('afterRender', function(view) {
@@ -537,45 +537,45 @@ NS.UI = (function(ns) {
         }
     });
 
-	editors._Composite = BaseEditor.extend({
+    editors._Composite = BaseEditor.extend({
         // Selector for field area (an element in the template where items will be placed)
         fieldRegion: '',
 
         initialize: function(options) {
-			this.validOptions = this.validOptions.concat(['fieldRegion']);
+            this.validOptions = this.validOptions.concat(['fieldRegion']);
             BaseEditor.prototype.initialize.apply(this, arguments);
 
-			this.childNamePrefix = (!this.childNamePrefix && this.name) ? this.name + '_' : '';
+            this.childNamePrefix = (!this.childNamePrefix && this.name) ? this.name + '_' : '';
             this.data = {};
             this.errors = {};
             this.names = {};
 
-			_.each(this.getFields(), function(fieldDefinition) {
-				this.addEditor.apply(this, _.values(fieldDefinition));
-			}, this);
-		},
+            _.each(this.getFields(), function(fieldDefinition) {
+                this.addEditor.apply(this, _.values(fieldDefinition));
+            }, this);
+        },
 
-		getFields: function () {
-			// To be implemented by child classes
-			// must return a list of field definition: [{name: '', editor: Editor, options: {}}]
-			return [];
-		},
+        getFields: function () {
+            // To be implemented by child classes
+            // must return a list of field definition: [{name: '', editor: Editor, options: {}}]
+            return [];
+        },
 
-		addEditor: function (name, Editor, options) {
-			// Do not proceed for readonly fields
-			if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable)) return;
-			if ((Editor == editors.Select || Editor == editors.CheckBox) && _.isFunction(options.options)) {
-				options.options = _.bind(options.options, this.initialData);
-			}
-			// Instantiate a subview for this editor + make names/identifiers unique
-			var view = new Editor(_.extend({}, options, {
-				id: this.id + '_' + name,
-				name: this.childNamePrefix + name,
-				label: options.title || name
-			}));
-			this.insertView(this.fieldRegion, view);
-			// Keep original name in a hash
-			this.names[view.name] = name;
+        addEditor: function (name, Editor, options) {
+            // Do not proceed for readonly fields
+            if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable)) return;
+            if ((Editor == editors.Select || Editor == editors.CheckBox) && _.isFunction(options.options)) {
+                options.options = _.bind(options.options, this.initialData);
+            }
+            // Instantiate a subview for this editor + make names/identifiers unique
+            var view = new Editor(_.extend({}, options, {
+                id: this.id + '_' + name,
+                name: this.childNamePrefix + name,
+                label: options.title || name
+            }));
+            this.insertView(this.fieldRegion, view);
+            // Keep original name in a hash
+            this.names[view.name] = name;
             // Bind MultiSchema fields to their selector
             if (Editor == editors.MultiSchema) {
                 var selector = this.getViews(this.fieldRegion).find(function(v) {
@@ -588,8 +588,8 @@ NS.UI = (function(ns) {
             this.listenTo(view, 'valid:pass', this.onFieldValidate);
             this.listenTo(view, 'valid:fail', this.onFieldError);
 
-			return view;
-		},
+            return view;
+        },
 
         onFieldValidate: function(fieldName, data) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
@@ -607,7 +607,7 @@ NS.UI = (function(ns) {
                 this.errors[fieldName] = error;
                 return this.trigger('valid:fail', this.name, this.errors);
             }
-		},
+        },
 
         validate: function() {
             // Relay validation to each subfield
@@ -624,34 +624,34 @@ NS.UI = (function(ns) {
                     view.clearValidationErrors(); // Relay to subview
             });
         }
-	});
+    });
 
     editors.NestedModel = editors._Composite.extend({
         templateId: 'subform',
 
         initialize: function(options) {
-			// Initialize schema+initialData depending on provided input (model instance? model class? raw schema/data)
-			if (options.initialData && options.initialData instanceof Backbone.Model) {
-				// /!\ Should we check whether initialData is actually a model instance ?
-				this.instance = options.initialData;
-				this.schema = this.instance.constructor.schema;
-				options.initialData = options.initialData.attributes;
-			} else if (options.model) {
-				this.Model = options.model;
-				options.initialData = (options.initialData) ? options.initialData : {};
-				this.instance = new this.Model(options.initialData);
-				this.schema = this.instance.constructor.schema;
-			} else {
-				this.schema = options.schema;
-				options.initialData = (options.initialData) ? options.initialData : {};
-			}
+            // Initialize schema+initialData depending on provided input (model instance? model class? raw schema/data)
+            if (options.initialData && options.initialData instanceof Backbone.Model) {
+                // /!\ Should we check whether initialData is actually a model instance ?
+                this.instance = options.initialData;
+                this.schema = this.instance.constructor.schema;
+                options.initialData = options.initialData.attributes;
+            } else if (options.model) {
+                this.Model = options.model;
+                options.initialData = (options.initialData) ? options.initialData : {};
+                this.instance = new this.Model(options.initialData);
+                this.schema = this.instance.constructor.schema;
+            } else {
+                this.schema = options.schema;
+                options.initialData = (options.initialData) ? options.initialData : {};
+            }
 
             // Ensure we have a model class before going further
             if (typeof this.schema === 'undefined')
-				throw new Error('Could not find a schema for form');
+                throw new Error('Could not find a schema for form');
 
             // Use all fields if fields are not explicitly set
-			this.fields = (options.fields) ? options.fields : _.keys(this.schema);
+            this.fields = (options.fields) ? options.fields : _.keys(this.schema);
 
             editors._Composite.prototype.initialize.apply(this, arguments);
         },
@@ -716,14 +716,14 @@ NS.UI = (function(ns) {
             }
         },
 
-		postProcessData: function (rawData) {
-			if (this.instance) {
-				this.instance.set(rawData);
-				return this.instance;
-			} else {
-				return rawData;
-			}
-		},
+        postProcessData: function (rawData) {
+            if (this.instance) {
+                this.instance.set(rawData);
+                return this.instance;
+            } else {
+                return rawData;
+            }
+        },
 
         serialize: function() {
             return {title: this.label, helpText: this.helpText, inline: this.inline};
@@ -751,11 +751,11 @@ NS.UI = (function(ns) {
         initialize: function(options) {
             // Ensure we have a model class before going further
             if (typeof options.model === 'undefined')
-				throw new Error('Could not find model class for List form');
+                throw new Error('Could not find model class for List form');
 
             this.validOptions = this.validOptions.concat(['headRegion']);
 
-			// Initialize specific options
+            // Initialize specific options
             this.defaults = _.extend({}, this.defaults, {
                 inline: true,
                 initialData: []
@@ -776,19 +776,19 @@ NS.UI = (function(ns) {
             }
         },
 
-		getFields: function () {
-			var fields = [];
-			_.each(this.initialData, function(instance) {
-				var options = this.getItemOptions();
-				options.initialData = instance;
+        getFields: function () {
+            var fields = [];
+            _.each(this.initialData, function(instance) {
+                var options = this.getItemOptions();
+                options.initialData = instance;
 
-				fields.push({
-					name: this._counter++,
-					editor: editors.NestedModel,
-					options: options
-				});
-			}, this);
-			return fields;
+                fields.push({
+                    name: this._counter++,
+                    editor: editors.NestedModel,
+                    options: options
+                });
+            }, this);
+            return fields;
         },
 
         getItemOptions: function() {
@@ -796,10 +796,10 @@ NS.UI = (function(ns) {
         },
 
         addItem: function(e) {
-			var view = this.addEditor(
-							this._counter++,
-							editors.NestedModel,
-							this.getItemOptions());
+            var view = this.addEditor(
+                            this._counter++,
+                            editors.NestedModel,
+                            this.getItemOptions());
 
             // If item is the first item, also display labels as an header row
             if (this._counter == 1) {
@@ -807,7 +807,7 @@ NS.UI = (function(ns) {
                 this.headerView.render();
             }
 
-			// Render the new editor
+            // Render the new editor
             var doneCallback = $.proxy(function(view) {
                 // Call LM internal method to attach a rendered subview (known as "partially render the view")
                 this.options.partial(this.$el, view.$el, this.__manager__, view.__manager__);
@@ -923,7 +923,7 @@ NS.UI = (function(ns) {
     });
 
     ns.Form = editors.NestedModel.extend({
-		templateId: 'form',
+        templateId: 'form',
 
         events: {
             'submit': 'onSubmit',

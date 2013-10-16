@@ -486,31 +486,54 @@ NS.UI = (function(ns) {
         format: 'dd/mm/yyyy',
 
         events: {
-            'blur input': function(e) {this.validate();},
-            'click span.add-on': function(e) {this.$dp.datepicker('show');}
+            'input input': 'onInput',
+            'blur input': 'onBlur',
+            'click span.add-on': 'showCalendar'
         },
 
         initialize: function() {
             this.validOptions = this.validOptions.concat(['format']);
             BaseEditor.prototype.initialize.apply(this, arguments);
             this._val = this.initialData;
-            this.on('afterRender', function(view) {
-                view.$dp = view.$el.find('input');
-                view.$dp.datepicker({format: view.format})
-                        .on('changeDate', _.bind(function(ev) {
-                            this._val = ev.date;
-                            if (ev.viewMode == 'days') {
-                                this.$dp.datepicker('hide');
-                                this.$dp.trigger('blur');
-                            }
-                        }, view));
-                if (view.initialData)
-                    view.$dp.datepicker('setValue', view.initialData)
-            });
+        },
+
+        afterRender: function() {
+            this.$dp = this.$el.find('input');
+            this.$dp.datepicker({format: this.format})
+                    .on('changeDate', this, function(ev) {
+                        if (ev.viewMode == 'days') {
+                            ev.data.$dp.trigger('input').datepicker('hide');
+                        }
+                    });
+            if (this.initialData)
+                this.$dp.datepicker('setValue', this.initialData)
+        },
+
+        showCalendar: function(e) {
+            this.$dp.datepicker('show');
+        },
+
+        onInput: function(e) {
+            this._val = $(e.target).val();
+            this.validate();
+        },
+
+        onBlur: function(e) {
+            this.$dp.datepicker('hide');
         },
 
         getValue: function() {
-            return this._val;
+            return this._val != "" ? this._val : undefined;
+        },
+
+        clearValidationErrors: function () {
+            BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
+            this.$el.find('.help-inline').html('');
+        },
+
+        handleValidationError: function (err) {
+            BaseEditor.prototype.handleValidationError.apply(this, arguments);
+            this.$el.find('.help-inline').html(err.message);
         }
     }, {
         templateSrc: {

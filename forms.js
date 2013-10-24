@@ -506,7 +506,7 @@ NS.UI = (function(ns) {
                         }
                     });
             if (this.initialData)
-                this.$dp.datepicker('setValue', this.initialData)
+                this.$dp.datepicker('setValue', this.initialData);
         },
 
         showCalendar: function(e) {

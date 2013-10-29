@@ -141,7 +141,7 @@ NS.UI = (function(ns) {
         templateId: 'editor-text',
 
         events: {
-            'blur input': function(e) {this.validate();}
+            'input input': function(e) {this.validate();}
         },
 
         clearValidationErrors: function () {
@@ -196,7 +196,8 @@ NS.UI = (function(ns) {
         label_no: 'No',
 
         events: {
-            'blur input': function(e) {this.validate();}
+            'keyup input': function(e) {this.validate();},
+            'click input': function(e) {this.validate();}
         },
 
         initialize: function() {
@@ -265,7 +266,8 @@ NS.UI = (function(ns) {
         multiple: true,
 
         events: {
-            'blur input': function(e) {this.validate();}
+            'keyup input': function(e) {this.validate();},
+            'click input': function(e) {this.validate();}
         },
 
         initialize: function(options) {
@@ -415,7 +417,8 @@ NS.UI = (function(ns) {
         nullValue: '',
 
         events: {
-            'blur select': function(e) {this.validate();}
+            'click select': function(e) {this.validate();},
+            'keyup select': function(e) {this.validate();},
         },
 
         initialize: function(options) {
@@ -487,7 +490,7 @@ NS.UI = (function(ns) {
 
         events: {
             'input input': 'onInput',
-            'blur input': 'onBlur',
+            'keyup input': 'onBlur',
             'click span.add-on': 'showCalendar'
         },
 
@@ -749,12 +752,12 @@ NS.UI = (function(ns) {
         },
 
         serialize: function() {
-            return {title: this.label, helpText: this.helpText, inline: this.inline};
+            return {id: this.id, title: this.label, helpText: this.helpText, inline: this.inline};
         }
     }, {
         templateSrc: {
             stacked:
-                '<fieldset>' +
+                '<fieldset id="<%- data.id %>">' +
                 '    <legend><%- data.title %></legend>' +
                 '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
                 '</fieldset>',

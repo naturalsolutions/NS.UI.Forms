@@ -760,7 +760,7 @@ NS.UI = (function(ns) {
                 '<fieldset id="<%- data.id %>">' +
                 '    <legend><%- data.title %></legend>' +
                 '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
-                '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Supprimer</button><% } %>'+
+                '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Delete<i class="icon-remove"></i></button><% } %>'+
                 '</fieldset>',
             inline: '<tr></tr>'
         }
@@ -866,7 +866,7 @@ NS.UI = (function(ns) {
                 '<div>' +
                 '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
                 '    <div class="items"></div>' +
-                '    <button type="button" class="btn add-item">Add</button>' +
+                '    <button type="button" class="btn add-item">Add<i class="icon-plus"></i></button>' +
                 '</div>',
             inline:
                 '<div>' +

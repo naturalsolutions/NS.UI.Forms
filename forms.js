@@ -760,6 +760,7 @@ NS.UI = (function(ns) {
                 '<fieldset id="<%- data.id %>">' +
                 '    <legend><%- data.title %></legend>' +
                 '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Supprimer</button><% } %>'+
                 '</fieldset>',
             inline: '<tr></tr>'
         }
@@ -771,7 +772,8 @@ NS.UI = (function(ns) {
         headRegion: 'thead',
 
         events: {
-            'click .add-item': 'addItem'
+            'click .add-item': 'addItem',
+            'click .del-item': 'delItem'
         },
 
         initialize: function(options) {
@@ -839,6 +841,24 @@ NS.UI = (function(ns) {
                 this.options.partial(this.$el, view.$el, this.__manager__, view.__manager__);
             }, this);
             view.render().done(doneCallback);
+        },
+        delItem: function(e) {
+            var form = $(e.target).attr('id');
+            form = form.substring(0, form.length - 5);
+            
+            var fieldName = this.name + '_' + form.replace(this.id + '_', '');
+            delete this.names[fieldName];
+             
+            var cpt = 0;
+            _.each(this.names, function(val, key) {
+                this.names[key] = cpt++;
+            }, this);
+            
+            this.getViews(this.fieldRegion).each(function(nestedView) {
+               if (nestedView.id == form)
+                    nestedView.remove();
+            });
+            $('#' + form).remove(); 
         }
     }, {
         templateSrc: {

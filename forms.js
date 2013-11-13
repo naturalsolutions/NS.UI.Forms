@@ -1,6 +1,6 @@
 var NS = window.NS || {};
 
-count = 0; 
+count = 0;
 
 NS.UI = (function(ns) {
     "use strict";
@@ -26,9 +26,10 @@ NS.UI = (function(ns) {
         templateId: '',
         template: function(data) {
             var mode = data.mode || 'stacked';
-
-            if (!(this.templateId in cache[mode]))
+            
+            if (!(this.templateId in cache[mode])) {
                 cache[mode][this.templateId] = _.template(this.constructor.templateSrc[mode], null, {variable: 'data'});
+            }
             return cache[mode][this.templateId](data);
         }
     });
@@ -36,16 +37,17 @@ NS.UI = (function(ns) {
     var validators = {};
 
     // Declare an exception class for validation errors
-    var ValidationError = function(error) {
+    var ValidationError = function (error) {
         this.message = error;
     };
 
     // FIXME: use cleaner OOP for validators
-    validators.Number = function() {
+    validators.Number = function () {
         this.msg = 'A number is expected here';
-        this.validate = function(value) {
-            if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value))
+        this.validate = function (value) {
+            if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value)) {
                 return parseFloat(value);
+            }
             throw new ValidationError(this.msg);
         };
     };
@@ -80,8 +82,7 @@ NS.UI = (function(ns) {
             _.extend(this, _.pick(options, this.validOptions));
             if (!('validators' in options))
                 this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
-            if (this.required) this.validators.push(new validators.Required());$
-            //console.log( this )
+            if (this.required) this.validators.push(new validators.Required());
         },
 
         addEvents: function(events) {
@@ -144,30 +145,41 @@ NS.UI = (function(ns) {
 
     editors.Text = BaseEditor.extend({
         templateId: 'editor-text',
-                
+            
         events: {
-            'input input': function(e) {this.validate();}
+            'input input': function(e) {this.validate();},
+            'mouseenter': function() {
+                if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
+                    $(this.$el).find("input").popover({
+                        content: this.helpText,
+                        placement: "top",
+                        trigger: "hover"
+                    });
+                }
+            }
         },
 
         clearValidationErrors: function () {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
-            this.$el.find('.help-inline').html('');
-            
-            
-            $(this.$el).find("input").popover("destroy");   //  destroy and hide the popover
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
+            } else {
+                this.$el.find('.help-inline').html('');         //  remove text for other mode
+            }
         },
 
         handleValidationError: function (err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
-            this.$el.find('.help-inline').html(err.message);
-            
-            //  Show a popover with error message
-            //  the popup is visible only when the input get the focus
-            $(this.$el).find("input").popover({
-                title : "Value error",
-                content : err.message, 
-                placement : "top", trigger: "focus"
-            });
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover({
+                    title: "Value error",
+                    content: err.message,
+                    placement: "bottom",
+                    trigger: "hover"
+                });
+            } else {
+                this.$el.find('.help-inline').html(err.message);
+            }
         },
 
         getValue: function() {
@@ -193,13 +205,13 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive: 
-                '<div class="span<%= data.size %> control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
+                '<% var size = (data.size != undefined) ? data.size : 3 %>' +
+                
+                '<div class="span<%= size %> control-group <% if (count == 0) { %>margin0<% count = size; } else if ( count + size > 12) { %> margin0 <% count = size; } else { count += size; }%>">'+
                 '    <label class="control-label" style="text-align : left"  for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '    <input class="span12" type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
-                //'    <div class="help-inline span12">&nbsp;</div>' +
-                //'    <div class="help-block span12"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
                 '</div>' + 
-                '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
+                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator"><% } %></div>'
         }
     });
 
@@ -221,7 +233,16 @@ NS.UI = (function(ns) {
 
         events: {
             'keyup input': function(e) {this.validate();},
-            'click input': function(e) {this.validate();}
+            'click input': function(e) {this.validate();},
+            'mouseenter': function() {
+                if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
+                    $(this.$el).find("input").popover({
+                        content: this.helpText,
+                        placement: "top",
+                        trigger: "hover"
+                    });
+                }
+            }
         },
 
         initialize: function() {
@@ -244,22 +265,25 @@ NS.UI = (function(ns) {
 
         clearValidationErrors: function () {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
-            this.$el.find('.help-inline').html('');
-            
-            $(this.$el).find("input").popover("destroy");
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
+            } else {
+                this.$el.find('.help-inline').html('');         //  remove text for other mode
+            }
         },
 
         handleValidationError: function (err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
-            this.$el.find('.help-inline').html(err.message);
-            
-            $(this.$el).find("input").popover({
-                title : "Value error",
-                content : err.message, 
-                placement : "top", trigger: "focus"
-            });
-            
-            
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover({
+                    title: "Value error",
+                    content: err.message,
+                    placement: "bottom",
+                    trigger: "hover"
+                });
+            } else {
+                this.$el.find('.help-inline').html(err.message);
+            }
         }
     }, {
         templateSrc: {
@@ -302,10 +326,8 @@ NS.UI = (function(ns) {
                 '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
                 '            <%- data.label_no %>' +
                 '        </label>' +
-                //'        <div class="help-inline span12">&nbsp;</div>' +
-                //'        <div class="help-block span12"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
                 '</div>'+
-                '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
+                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator top0"><% } %></div>'
         }
     });
 
@@ -316,7 +338,16 @@ NS.UI = (function(ns) {
 
         events: {
             'keyup input': function(e) {this.validate();},
-            'click input': function(e) {this.validate();}
+            'click input': function(e) {this.validate();},
+            'mouseenter': function() {
+                if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
+                    $(this.$el).find("input").popover({
+                        content: this.helpText,
+                        placement: "top",
+                        trigger: "hover"
+                    });
+                }
+            }
         },
 
         initialize: function(options) {
@@ -416,20 +447,25 @@ NS.UI = (function(ns) {
 
         clearValidationErrors: function () {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
-            this.$el.find('.help-inline').html('');
-            
-            $(this.$el).find("input").popover("destroy");
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
+            } else {
+                this.$el.find('.help-inline').html('');         //  remove text for other mode
+            }
         },
 
         handleValidationError: function (err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
-            this.$el.find('.help-inline').html(err.message);
-            
-            $(this.$el).find("input").popover({
-                title : "Value error",
-                content : err.message, 
-                placement : "top", trigger: "focus"
-            });
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover({
+                    title: "Value error",
+                    content: err.message,
+                    placement: "bottom",
+                    trigger: "hover"
+                });
+            } else {
+                this.$el.find('.help-inline').html(err.message);
+            }
         }
     }, {
         templateSrc: {
@@ -475,10 +511,8 @@ NS.UI = (function(ns) {
                 '                <label class="checkbox inline "><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
                 '            <% }); %>' +
                 '        <% }}); %>' +
-                //'        <div class="help-inline span12">&nbsp;</div>' +
-                //'        <div class="help-block span12"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
                 '</div>'+
-                '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
+                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator"><% } %></div>'
         }
     });
 
@@ -492,6 +526,15 @@ NS.UI = (function(ns) {
         events: {
             'click select': function(e) {this.validate();},
             'keyup select': function(e) {this.validate();},
+            'mouseenter': function() {
+                if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
+                    $(this.$el).find("select").popover({
+                        content: this.helpText,
+                        placement: "top",
+                        trigger: "hover"
+                    });
+                }
+            }
         },
 
         initialize: function(options) {
@@ -569,8 +612,6 @@ NS.UI = (function(ns) {
                 '                }' +
                 '            }); %>' +
                 '        </select>' +
-                //'        <div class="help-inline span12">&nbsp;</div>' +
-                //'        <div class="help-block span12"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
                 '</div>' +
                 '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
         }
@@ -584,10 +625,20 @@ NS.UI = (function(ns) {
         events: {
             'input input': 'onInput',
             'keyup input': 'onBlur',
-            'click span.add-on': 'showCalendar'
+            'click span.add-on': 'showCalendar',
+            'mouseenter': function() {
+                if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
+                    $(this.$el).find("input").popover({
+                        content: this.helpText,
+                        placement: "top",
+                        trigger: "hover"
+                    });
+                }
+            }
         },
 
         initialize: function() {
+            
             this.validOptions = this.validOptions.concat(['format']);
             BaseEditor.prototype.initialize.apply(this, arguments);
             this._val = this.initialData;
@@ -606,7 +657,7 @@ NS.UI = (function(ns) {
         },
 
         showCalendar: function(e) {
-            this.$dp.datepicker('show');
+            this.$dp.datepicker("show");
         },
 
         onInput: function(e) {
@@ -624,20 +675,25 @@ NS.UI = (function(ns) {
 
         clearValidationErrors: function () {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
-            this.$el.find('.help-inline').html('');
-            
-            $(this.$el).find("input").popover("destroy");
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
+            } else {
+                this.$el.find('.help-inline').html('');         //  remove text for other mode
+            }
         },
 
         handleValidationError: function (err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
-            this.$el.find('.help-inline').html(err.message);
-            
-            $(this.$el).find("input").popover({
-                title : "Value error",
-                content : err.message, 
-                placement : "top", trigger: "focus"
-            });
+            if (this.mode === "responsive") {
+                $(this.$el).find("input").popover({
+                    title: "Value error",
+                    content: err.message,
+                    placement: "bottom",
+                    trigger: "hover"
+                });
+            } else {
+                this.$el.find('.help-inline').html(err.message);
+            }
         }
     }, {
         templateSrc: {
@@ -663,12 +719,9 @@ NS.UI = (function(ns) {
                 '</td>',
             responsive:
                 '<div class="span<%= data.size %> row input-append date control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
-                //'<div class="span<%= data.size %> row input-append date" style="">' +
                 '   <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '   <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' + 
                 '   <span class="add-on" style="height : 20px;"><i class="icon-calendar"></i></span>' + 
-                //'   <div class="help-inline span12">&nbsp;</div>' +
-                //'   <div class="help-block span12"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
                 '</div>' + 
                 '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
         }
@@ -864,7 +917,7 @@ NS.UI = (function(ns) {
         },
 
         serialize: function() {
-            return {title: this.label, helpText: this.helpText, mode: this.mode};
+            return {id: this.id, title: this.label, helpText: this.helpText, mode: this.mode};
         }
     }, {
         templateSrc: {
@@ -875,8 +928,7 @@ NS.UI = (function(ns) {
                 '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Delete<i class="icon-remove"></i></button><% } %>'+
                 '</fieldset>',
             inline: '<tr></tr>',
-            responsive: '<fieldset class="row-fluid">' + 
-                        '</fieldset>'
+            responsive: '<fieldset class="row-fluid"></fieldset>'
         }
     });
 
@@ -1169,7 +1221,6 @@ NS.UI = (function(ns) {
                 '</form>',
             inline: '',
             responsive:
-                //   class="<% if (data.inline) { %>form-inline<% } else { %>form-horizontal<% } %>"
                 '<form class="container-fluid">' +
                 '    <h3><%- data.title %></h3>' +
                 '    <div class="form-content"></div>' +

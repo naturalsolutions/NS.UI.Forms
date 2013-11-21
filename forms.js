@@ -1,7 +1,5 @@
 var NS = window.NS || {};
 
-count = 0;
-
 NS.UI = (function(ns) {
     "use strict";
 
@@ -10,23 +8,21 @@ NS.UI = (function(ns) {
         stacked: {},
         responsive: {}
     };
-
+    
     var BaseView = Backbone.Layout.extend({
         manage: true, // Enable LM
-        el: false, // LM will use template's root node
+        el: false, // LM will use template's root node,
 
         initialize: function() {
             // Ensure LM will execute template() with an appriate context
             this.template = _.bind(this.template, this);
             Backbone.Layout.prototype.initialize.apply(this, arguments);
-            
         },
 
         // Note: we can not rely an LM fetch/cache mechanism because we have two alternative templates for each view
         templateId: '',
         template: function(data) {
             var mode = data.mode || 'stacked';
-            
             if (!(this.templateId in cache[mode])) {
                 cache[mode][this.templateId] = _.template(this.constructor.templateSrc[mode], null, {variable: 'data'});
             }
@@ -67,11 +63,12 @@ NS.UI = (function(ns) {
      * Base class for all editors
      */
     var BaseEditor = BaseView.extend({
-        validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'mode', 'validators', 'size', 'eol', 'separator'],
+        validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'mode', 'validators', 'size', 'eol', 'separator', 'margin'],
 
         defaults: {
             helpText: '',
-            required: false
+            required: false,
+            size : 3
         },
 
         initialize: function(options) {
@@ -82,7 +79,7 @@ NS.UI = (function(ns) {
             _.extend(this, _.pick(options, this.validOptions));
             if (!('validators' in options))
                 this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
-            if (this.required) this.validators.push(new validators.Required());
+            if (this.required) this.validators.push(new validators.Required());       
         },
 
         addEvents: function(events) {
@@ -151,6 +148,7 @@ NS.UI = (function(ns) {
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
+                        title: "field information",
                         content: this.helpText,
                         placement: "top",
                         trigger: "hover"
@@ -174,7 +172,7 @@ NS.UI = (function(ns) {
                 $(this.$el).find("input").popover({
                     title: "Value error",
                     content: err.message,
-                    placement: "bottom",
+                    placement: "top",
                     trigger: "hover"
                 });
             } else {
@@ -205,13 +203,11 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive: 
-                '<% var size = (data.size != undefined) ? data.size : 3 %>' +
-                
-                '<div class="span<%= size %> control-group <% if (count == 0) { %>margin0<% count = size; } else if ( count + size > 12) { %> margin0 <% count = size; } else { count += size; }%>">'+
+                '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
                 '    <label class="control-label" style="text-align : left"  for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '    <input class="span12" type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
                 '</div>' + 
-                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator"><% } %></div>'
+                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
@@ -237,6 +233,7 @@ NS.UI = (function(ns) {
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
+                        title: "field information",
                         content: this.helpText,
                         placement: "top",
                         trigger: "hover"
@@ -278,7 +275,7 @@ NS.UI = (function(ns) {
                 $(this.$el).find("input").popover({
                     title: "Value error",
                     content: err.message,
-                    placement: "bottom",
+                    placement: "top",
                     trigger: "hover"
                 });
             } else {
@@ -316,7 +313,7 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive:
-                '<div class="span<%= data.size %> control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
+                '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
                 '    <label class="sontrol-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '    <label class="radio">' +
                 '       <input class="" type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
@@ -327,7 +324,7 @@ NS.UI = (function(ns) {
                 '            <%- data.label_no %>' +
                 '        </label>' +
                 '</div>'+
-                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator top0"><% } %></div>'
+                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
@@ -342,6 +339,7 @@ NS.UI = (function(ns) {
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
+                        title: "field information",
                         content: this.helpText,
                         placement: "top",
                         trigger: "hover"
@@ -460,7 +458,7 @@ NS.UI = (function(ns) {
                 $(this.$el).find("input").popover({
                     title: "Value error",
                     content: err.message,
-                    placement: "bottom",
+                    placement: "top",
                     trigger: "hover"
                 });
             } else {
@@ -500,7 +498,7 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive:
-                '<div class="span<%= data.size %> control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
+                '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
                 '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
                 '            <label class="checkbox inline span6"><inputtype="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
@@ -512,7 +510,7 @@ NS.UI = (function(ns) {
                 '            <% }); %>' +
                 '        <% }}); %>' +
                 '</div>'+
-                '<% if (data.eol) { count = 0; %><div style="<%if (!data.separator) {%>visibility : hidden;<%}%>" class="span12 separator"><% } %></div>'
+                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
@@ -529,6 +527,7 @@ NS.UI = (function(ns) {
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("select").popover({
+                        title: "field information",
                         content: this.helpText,
                         placement: "top",
                         trigger: "hover"
@@ -597,7 +596,7 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive:
-                '<div class="span<%= data.size %> control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
+                '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
                 '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '        <select class="span12" id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
                 '            <% _.each(data.options, function(item) {' +
@@ -613,7 +612,7 @@ NS.UI = (function(ns) {
                 '            }); %>' +
                 '        </select>' +
                 '</div>' +
-                '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
+                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
@@ -629,6 +628,7 @@ NS.UI = (function(ns) {
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
+                        title: "field information",
                         content: this.helpText,
                         placement: "top",
                         trigger: "hover"
@@ -688,7 +688,7 @@ NS.UI = (function(ns) {
                 $(this.$el).find("input").popover({
                     title: "Value error",
                     content: err.message,
-                    placement: "bottom",
+                    placement: "top",
                     trigger: "hover"
                 });
             } else {
@@ -718,12 +718,12 @@ NS.UI = (function(ns) {
                 '    <div class="help-inline"></div>' +
                 '</td>',
             responsive:
-                '<div class="span<%= data.size %> row input-append date control-group <% if (count == 0) { %>margin0<% count = data.size; } else if ( count + data.size > 12) { %> margin0 <% count = data.size; } else { count += data.size; }%>">'+
+                '<div class="span<%= data.size %> input-append date control-group <% if (data.margin) { %>margin0<% } %>">'+
                 '   <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                 '   <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' + 
-                '   <span class="add-on" style="height : 20px;"><i class="icon-calendar"></i></span>' + 
+                '   <span class="add-on"><i class="icon-calendar"></i></span>' + 
                 '</div>' + 
-                '<% if (data.eol) { count = 0; %><fieldset style="height : 10px; background : #eee <%if (!data.separator) {%>visibility : hidden;<%}%>" class="row-fluid"><% } %>'
+                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
@@ -852,7 +852,7 @@ NS.UI = (function(ns) {
             this.fieldsets = {};
             _.each(this.fields, function(field) {
                 var fieldDef, name;
-                if (_.isObject(field)) {
+                if (_.isObject(field)) {                    
                     // Fieldset
                     name = _.uniqueId(this.name);
                     fieldDef = {
@@ -866,8 +866,9 @@ NS.UI = (function(ns) {
                     // Regular fields
                     name = field;
                     fieldDef = _.clone(this.schema[name]);
-                    if (name in this.initialData)
+                    if (name in this.initialData) {
                         fieldDef.initialData = this.initialData[name];
+                    }
                 }
                 fieldDef.mode = fieldDef.mode || this.mode;
 
@@ -1087,19 +1088,37 @@ NS.UI = (function(ns) {
 
         getFields: function () {
             var fields = [];
-
+            var counter = 0;
             var schemas = _.result(this, 'schemas');
             _.each(schemas[this.activeSchema], function(field, name) {
+                
                 if (this.activeSchema in this.cache && name in this.cache[this.activeSchema].data) {
                     field.initialData = this.cache[this.activeSchema].data[name];
                 } else if (this.activeSchema !== null && this.activeSchema == this.initialSchema) {
                     field.initialData = this.initialData[name];
                 }
                 field.mode = field.mode || this.mode;
-
+                
+                //  Check counter value
+                if (counter === 0) {
+                    field.margin = true;
+                    counter += field.size;
+                } else {
+                    if (counter + field.size > 12) {
+                        field.margin = true;
+                        counter = field.size;
+                    } else {
+                        counter += field.size;
+                        field.margin = false;
+                    }
+                }
+                
+                if( field.eol ) { counter = 0; }
+                
                 var editor = editors[field.type];
-                if (editor)
+                if (editor) {
                     fields.push({name: name, editor: editor, options: field});
+                }
             }, this);
             return fields;
         },

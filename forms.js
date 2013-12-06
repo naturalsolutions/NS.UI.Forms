@@ -913,7 +913,7 @@ NS.UI = (function(ns) {
                 this.instance.set(rawData);
                 return this.instance;
             } else {
-                return rawData;
+                return _.extend(this.initialData, rawData);
             }
         },
 

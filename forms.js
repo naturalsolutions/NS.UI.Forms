@@ -8,17 +8,18 @@ NS.UI = (function(ns) {
         stacked: {},
         responsive: {}
     };
-    
+
     var BaseView = Backbone.Layout.extend({
         manage: true, // Enable LM
         el: false, // LM will use template's root node,
 
         initialize: function() {
+
             // Ensure LM will execute template() with an appriate context
             this.template = _.bind(this.template, this);
             Backbone.Layout.prototype.initialize.apply(this, arguments);
+            
         },
-
         // Note: we can not rely an LM fetch/cache mechanism because we have two alternative templates for each view
         templateId: '',
         template: function(data) {
@@ -33,14 +34,14 @@ NS.UI = (function(ns) {
     var validators = {};
 
     // Declare an exception class for validation errors
-    var ValidationError = function (error) {
+    var ValidationError = function(error) {
         this.message = error;
     };
 
     // FIXME: use cleaner OOP for validators
-    validators.Number = function () {
+    validators.Number = function() {
         this.msg = 'A number is expected here';
-        this.validate = function (value) {
+        this.validate = function(value) {
             if (typeof value === 'number' || /^-?[0-9]+(.[0-9]*)?$/.test(value)) {
                 return parseFloat(value);
             }
@@ -64,13 +65,11 @@ NS.UI = (function(ns) {
      */
     var BaseEditor = BaseView.extend({
         validOptions: ['id', 'name', 'initialData', 'label', 'required', 'helpText', 'mode', 'validators', 'size', 'eol', 'separator', 'margin'],
-
         defaults: {
             helpText: '',
             required: false,
-            size : 3
+            size: 3
         },
-
         initialize: function(options) {
             BaseView.prototype.initialize.apply(this, arguments);
             _.defaults(options, this.defaults);
@@ -79,30 +78,27 @@ NS.UI = (function(ns) {
             _.extend(this, _.pick(options, this.validOptions));
             if (!('validators' in options))
                 this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
-            if (this.required) this.validators.push(new validators.Required());       
+            if (this.required)
+                this.validators.push(new validators.Required());
         },
-
         addEvents: function(events) {
             this.events = _.result(this, 'events') || {};
             _.extend(this.events, events);
             this.delegateEvents();
         },
-
         getValue: function() {
             // To be implemented by child classes
             // must return parsed user input
-            return ;
+            return;
         },
-
         getLabel: function() {
             return {label: this.label, required: this.required};
         },
-
         validate: function() {
             var value = this.getValue();
             this.clearValidationErrors();
             try {
-                _.each(this.validators, function (validator) {
+                _.each(this.validators, function(validator) {
                     if (this.required || typeof value != 'undefined') {
                         if (typeof validator === 'string') {
                             validator = new validators[validator]();
@@ -118,23 +114,19 @@ NS.UI = (function(ns) {
             }
             return this.trigger('valid:pass', this.name, this.postProcessData(value));
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             // May be implemented by child classes
             this.$el.removeClass('error');
         },
-
-        handleValidationError: function (err) {
+        handleValidationError: function(err) {
             // May be implemented by child classes
             this.$el.addClass('error');
         },
-
-        postProcessData: function (rawData) {
+        postProcessData: function(rawData) {
             // May be implemented by child classes
             // must return formatted data
             return rawData;
         },
-
         serialize: function() {
             return _.pick(this, this.validOptions);
         }
@@ -142,9 +134,10 @@ NS.UI = (function(ns) {
 
     editors.Text = BaseEditor.extend({
         templateId: 'editor-text',
-            
         events: {
-            'input input': function(e) {this.validate();},
+            'input input': function(e) {
+                this.validate();
+            },
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
@@ -156,8 +149,7 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
@@ -165,8 +157,7 @@ NS.UI = (function(ns) {
                 this.$el.find('.help-inline').html('');         //  remove text for other mode
             }
         },
-
-        handleValidationError: function (err) {
+        handleValidationError: function(err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover({
@@ -179,7 +170,6 @@ NS.UI = (function(ns) {
                 this.$el.find('.help-inline').html(err.message);
             }
         },
-
         getValue: function() {
             if (this.$el) {
                 var value = this.$el.find('[name=' + this.name + ']').val();
@@ -189,30 +179,30 @@ NS.UI = (function(ns) {
     }, {
         templateSrc: {
             stacked:
-                '<div class="control-group">' +
-                '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <div class="controls">' +
-                '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
-                '        <div class="help-inline"></div>' +
-                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
-                '    </div>' +
-                '</div>',
+                    '<div class="control-group">' +
+                    '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <div class="controls">' +
+                    '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+                    '        <div class="help-inline"></div>' +
+                    '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                    '    </div>' +
+                    '</div>',
             inline:
-                '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
-                '    <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
-                '    <div class="help-inline"></div>' +
-                '</td>',
-            responsive: 
-                '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
-                '    <label class="control-label" style="text-align : left"  for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <input class="span12" type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
-                '</div>' + 
-                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
+                    '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
+                    '    <input type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+                    '    <div class="help-inline"></div>' +
+                    '</td>',
+            responsive:
+                    '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '    <label class="control-label" style="text-align : left"  for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <input class="span12" type="text" id="<%- data.id %>" name="<%- data.name %>" value="<%- data.initialData %>" />' +
+                    '</div>' +
+                    '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
     editors.Number = editors.Text.extend({
-        initialize: function () {
+        initialize: function() {
             editors.Text.prototype.initialize.apply(this, arguments);
             this.validators.unshift('Number');
         }
@@ -220,16 +210,17 @@ NS.UI = (function(ns) {
 
     editors.Boolean = BaseEditor.extend({
         templateId: 'editor-boolean',
-
         value_yes: 'yes',
         value_no: 'no',
-
         label_yes: 'Yes',
         label_no: 'No',
-
         events: {
-            'keyup input': function(e) {this.validate();},
-            'click input': function(e) {this.validate();},
+            'keyup input': function(e) {
+                this.validate();
+            },
+            'click input': function(e) {
+                this.validate();
+            },
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
@@ -241,15 +232,13 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
         initialize: function() {
             this.validOptions = this.validOptions.concat(['label_yes', 'label_no', 'value_yes', 'value_no']);
             BaseEditor.prototype.initialize.apply(this, arguments);
         },
-
         getValue: function() {
             if (this.$el) {
-                switch(this.$el.find(':checked[name=' + this.name + ']').val()) {
+                switch (this.$el.find(':checked[name=' + this.name + ']').val()) {
                     case this.value_yes:
                         return true;
                     case this.value_no:
@@ -259,8 +248,7 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
@@ -268,8 +256,7 @@ NS.UI = (function(ns) {
                 this.$el.find('.help-inline').html('');         //  remove text for other mode
             }
         },
-
-        handleValidationError: function (err) {
+        handleValidationError: function(err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover({
@@ -285,57 +272,59 @@ NS.UI = (function(ns) {
     }, {
         templateSrc: {
             stacked:
-                '<div class="control-group">' +
-                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <div class="controls">' +
-                '        <label class="radio inline">' +
-                '            <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
-                '            <%- data.label_yes %>' +
-                '        </label>' +
-                '        <label class="radio inline">' +
-                '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
-                '            <%- data.label_no %>' +
-                '        </label>' +
-                '        <div class="help-inline">&nbsp;</div>' +
-                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
-                '    </div>' +
-                '</div>',
+                    '<div class="control-group">' +
+                    '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <div class="controls">' +
+                    '        <label class="radio inline">' +
+                    '            <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
+                    '            <%- data.label_yes %>' +
+                    '        </label>' +
+                    '        <label class="radio inline">' +
+                    '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
+                    '            <%- data.label_no %>' +
+                    '        </label>' +
+                    '        <div class="help-inline">&nbsp;</div>' +
+                    '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %>&nbsp;</div>' +
+                    '    </div>' +
+                    '</div>',
             inline:
-                '<td<% if (data.elpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
-                '    <label class="radio inline">' +
-                '        <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
-                '        <%- data.label_yes %>' +
-                '    </label>' +
-                '    <label class="radio inline">' +
-                '        <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
-                '        <%- data.label_no %>' +
-                '    </label>' +
-                '    <div class="help-inline"></div>' +
-                '</td>',
+                    '<td<% if (data.elpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                    '    <label class="radio inline">' +
+                    '        <input type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
+                    '        <%- data.label_yes %>' +
+                    '    </label>' +
+                    '    <label class="radio inline">' +
+                    '        <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
+                    '        <%- data.label_no %>' +
+                    '    </label>' +
+                    '    <div class="help-inline"></div>' +
+                    '</td>',
             responsive:
-                '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
-                '    <label class="sontrol-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <label class="radio">' +
-                '       <input class="" type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
-                '            <%- data.label_yes %>' +
-                '       </label>' +
-                '        <label class="radio">' +
-                '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
-                '            <%- data.label_no %>' +
-                '        </label>' +
-                '</div>'+
-                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
+                    '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '    <label class="sontrol-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <label class="radio">' +
+                    '       <input class="" type="radio" id="<%- data.id %>_yes" name="<%- data.name %>" value="<%- data.value_yes %>"<% if ((typeof data.initialData === "boolean") && data.initialData) { %> checked="checked"<% } %> />' +
+                    '            <%- data.label_yes %>' +
+                    '       </label>' +
+                    '        <label class="radio">' +
+                    '            <input type="radio" id="<%- data.id %>_no" name="<%- data.name %>" value="<%- data.value_no %>"<% if ((typeof data.initialData === "boolean") && !data.initialData) { %> checked="checked"<% } %> />' +
+                    '            <%- data.label_no %>' +
+                    '        </label>' +
+                    '</div>' +
+                    '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
     editors.CheckBox = BaseEditor.extend({
         templateId: 'editor-checkbox',
-
         multiple: true,
-
         events: {
-            'keyup input': function(e) {this.validate();},
-            'click input': function(e) {this.validate();},
+            'keyup input': function(e) {
+                this.validate();
+            },
+            'click input': function(e) {
+                this.validate();
+            },
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
@@ -347,7 +336,6 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
         initialize: function(options) {
             if (!('initialData' in options) || (typeof(options.initialData) === 'undefined')) {
                 if ('defaultValue' in options) {
@@ -357,7 +345,7 @@ NS.UI = (function(ns) {
                 } else {
                     options.initialData = [];
                 }
-            // Store data in array even when select is not 'multiple'
+                // Store data in array even when select is not 'multiple'
             } else if (!_.isArray(options.initialData)) {
                 options.initialData = [options.initialData];
             }
@@ -369,16 +357,15 @@ NS.UI = (function(ns) {
             // /!\ options should not be added to validOptions because it would override this.options (which is an internal property used by LayoutManager
             this.optionConfig = options.options;
         },
-
         getValue: function() {
             if (this.$el) {
-                var val = this.$el.find(':checked').map(function () {
+                var val = this.$el.find(':checked').map(function() {
                     return $(this).val();
                 }).get();
-                if (val.length > 0) return val;
+                if (val.length > 0)
+                    return val;
             }
         },
-
         getInitialValue: function() {
             if (this.initialData.length > 0) {
                 return this.initialData;
@@ -398,9 +385,9 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
-        postProcessData: function (rawData) {
-            if (typeof(rawData) === 'undefined') return rawData;
+        postProcessData: function(rawData) {
+            if (typeof(rawData) === 'undefined')
+                return rawData;
             // When the select source is a collection, convert model ids into model instance.
             var optionConfig = _.result(this, 'optionConfig');
             if (optionConfig instanceof Backbone.Collection)
@@ -411,7 +398,6 @@ NS.UI = (function(ns) {
             // Unpack data when multiple selection is not allowed
             return (this.multiple) ? rawData : rawData[0];
         },
-
         serialize: function() {
             var viewData = BaseEditor.prototype.serialize.apply(this, arguments);
             var options;
@@ -442,8 +428,7 @@ NS.UI = (function(ns) {
             viewData.options = options;
             return viewData;
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
@@ -451,8 +436,7 @@ NS.UI = (function(ns) {
                 this.$el.find('.help-inline').html('');         //  remove text for other mode
             }
         },
-
-        handleValidationError: function (err) {
+        handleValidationError: function(err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover({
@@ -468,62 +452,63 @@ NS.UI = (function(ns) {
     }, {
         templateSrc: {
             stacked:
-                '<div class="control-group">' +
-                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <div class="controls">' +
-                '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
-                '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
-                '        <% }}); %>' +
-                '        <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
-                '            <label class="label"><%- item.label %></label>' +
-                '            <% _.each(item.options, function(subitem) { %>' +
-                '                <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
-                '            <% }); %>' +
-                '        <% }}); %>' +
-                '        <div class="help-inline"></div>' +
-                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
-                '    </div>' +
-                '</div>',
+                    '<div class="control-group">' +
+                    '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <div class="controls">' +
+                    '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
+                    '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
+                    '        <% }}); %>' +
+                    '        <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
+                    '            <label class="label"><%- item.label %></label>' +
+                    '            <% _.each(item.options, function(subitem) { %>' +
+                    '                <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
+                    '            <% }); %>' +
+                    '        <% }}); %>' +
+                    '        <div class="help-inline"></div>' +
+                    '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                    '    </div>' +
+                    '</div>',
             inline:
-                '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
-                '    <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
-                '        <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
-                '    <% }}); %>' +
-                '    <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
-                '        <label class="label"><%- item.label %></label>' +
-                '        <% _.each(item.options, function(subitem) { %>' +
-                '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
-                '        <% }); %>' +
-                '    <% }}); %>' +
-                '    <div class="help-inline"></div>' +
-                '</td>',
+                    '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                    '    <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
+                    '        <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
+                    '    <% }}); %>' +
+                    '    <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
+                    '        <label class="label"><%- item.label %></label>' +
+                    '        <% _.each(item.options, function(subitem) { %>' +
+                    '            <label class="checkbox inline"><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
+                    '        <% }); %>' +
+                    '    <% }}); %>' +
+                    '    <div class="help-inline"></div>' +
+                    '</td>',
             responsive:
-                '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
-                '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
-                '            <label class="checkbox inline span6"><inputtype="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
-                '        <% }}); %>' +
-                '        <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
-                '            <label class="label"><%- item.label %></label>' +
-                '            <% _.each(item.options, function(subitem) { %>' +
-                '                <label class="checkbox inline "><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
-                '            <% }); %>' +
-                '        <% }}); %>' +
-                '</div>'+
-                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
+                    '<div class="checkbox span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '        <% _.each(data.options, function(item) {if (\'val\' in item) { %>' +
+                    '            <label class="checkbox inline span6"><inputtype="checkbox" name="<%- data.name %>" value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> checked<% } %>> <%- item.label %></label>' +
+                    '        <% }}); %>' +
+                    '        <% _.each(data.options, function(item) {if (\'options\' in item) { %>' +
+                    '            <label class="label"><%- item.label %></label>' +
+                    '            <% _.each(item.options, function(subitem) { %>' +
+                    '                <label class="checkbox inline "><input type="checkbox" name="<%- data.name %>" value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> checked<% } %>> <%- subitem.label %></label>' +
+                    '            <% }); %>' +
+                    '        <% }}); %>' +
+                    '</div>' +
+                    '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
     editors.Select = editors.CheckBox.extend({
         templateId: 'editor-select',
-
         multiple: false,
-
         nullValue: '',
-
         events: {
-            'click select': function(e) {this.validate();},
-            'keyup select': function(e) {this.validate();},
+            'click select': function(e) {
+                this.validate();
+            },
+            'keyup select': function(e) {
+                this.validate();
+            },
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("select").popover({
@@ -535,92 +520,89 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
         initialize: function(options) {
             this.validOptions = this.validOptions.concat(['multiple', 'nullValue']);
             editors.CheckBox.prototype.initialize.apply(this, arguments);
         },
-
         getValue: function() {
             if (this.$el) {
                 var val = this.$el.find('select').val();
-                if (val === this.nullValue || val === null) return undefined;
-                if (! this.multiple) return [val];
+                if (val === this.nullValue || val === null)
+                    return undefined;
+                if (!this.multiple)
+                    return [val];
                 return val;
             }
         },
-
         serialize: function() {
             var viewData = editors.CheckBox.prototype.serialize.apply(this, arguments);
-            if (!this.multiple) viewData.options.unshift({val: this.nullValue, label: '--'});
+            if (!this.multiple)
+                viewData.options.unshift({val: this.nullValue, label: '--'});
             return viewData;
         }
     }, {
         templateSrc: {
             stacked:
-                '<div class="control-group">' +
-                '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <div class="controls">' +
-                '        <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
-                '            <% _.each(data.options, function(item) {' +
-                '                if (\'options\' in item) {' +
-                '                    %><optgroup label="<%- item.label %>"><%' +
-                '                    _.each(item.options, function(subitem) {' +
-                '                        %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
-                '                    });' +
-                '                    %></optgroup><%' +
-                '                } else {' +
-                '                    %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
-                '                }' +
-                '            }); %>' +
-                '        </select>' +
-                '        <div class="help-inline"></div>' +
-                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
-                '    </div>' +
-                '</div>',
+                    '<div class="control-group">' +
+                    '    <label class="control-label"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <div class="controls">' +
+                    '        <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
+                    '            <% _.each(data.options, function(item) {' +
+                    '                if (\'options\' in item) {' +
+                    '                    %><optgroup label="<%- item.label %>"><%' +
+                    '                    _.each(item.options, function(subitem) {' +
+                    '                        %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
+                    '                    });' +
+                    '                    %></optgroup><%' +
+                    '                } else {' +
+                    '                    %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
+                    '                }' +
+                    '            }); %>' +
+                    '        </select>' +
+                    '        <div class="help-inline"></div>' +
+                    '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                    '    </div>' +
+                    '</div>',
             inline:
-                '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
-                '    <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
-                '        <% _.each(data.options, function(item) {' +
-                '            if (\'options\' in item) {' +
-                '                %><optgroup label="<%- item.label %>"><%' +
-                '                _.each(item.options, function(subitem) {' +
-                '                    %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
-                '                });' +
-                '                %></optgroup><%' +
-                '            } else {' +
-                '                %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
-                '            }' +
-                '        }); %>' +
-                '    </select>' +
-                '    <div class="help-inline"></div>' +
-                '</td>',
+                    '<td<% if (data.helpText) { %> title="<%- data.helpText %>"<% } %> class="control-group">' +
+                    '    <select id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
+                    '        <% _.each(data.options, function(item) {' +
+                    '            if (\'options\' in item) {' +
+                    '                %><optgroup label="<%- item.label %>"><%' +
+                    '                _.each(item.options, function(subitem) {' +
+                    '                    %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
+                    '                });' +
+                    '                %></optgroup><%' +
+                    '            } else {' +
+                    '                %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
+                    '            }' +
+                    '        }); %>' +
+                    '    </select>' +
+                    '    <div class="help-inline"></div>' +
+                    '</td>',
             responsive:
-                '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">'+
-                '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '        <select class="span12" id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
-                '            <% _.each(data.options, function(item) {' +
-                '                if (\'options\' in item) {' +
-                '                    %><optgroup label="<%- item.label %>"><%' +
-                '                    _.each(item.options, function(subitem) {' +
-                '                        %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
-                '                    });' +
-                '                    %></optgroup><%' +
-                '                } else {' +
-                '                    %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
-                '                }' +
-                '            }); %>' +
-                '        </select>' +
-                '</div>' +
-                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
+                    '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '    <label><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '        <select class="span12" id="<%- data.id %>" name="<%- data.name %>" <% if (data.multiple) { %> multiple="multiple"<% } %>>' +
+                    '            <% _.each(data.options, function(item) {' +
+                    '                if (\'options\' in item) {' +
+                    '                    %><optgroup label="<%- item.label %>"><%' +
+                    '                    _.each(item.options, function(subitem) {' +
+                    '                        %><option value="<%- subitem.val %>"<% if (_.contains(data.initialData, subitem.val)) { %> selected="selected"<% } %>><%- subitem.label %></option><%' +
+                    '                    });' +
+                    '                    %></optgroup><%' +
+                    '                } else {' +
+                    '                    %><option value="<%- item.val %>"<% if (_.contains(data.initialData, item.val)) { %> selected="selected"<% } %>><%- item.label %></option><%' +
+                    '                }' +
+                    '            }); %>' +
+                    '        </select>' +
+                    '</div>' +
+                    '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
     editors.Date = BaseEditor.extend({
         templateId: 'editor-date',
-
-        format: 'dd/mm/yyyy',
-
         events: {
             'input input': 'onInput',
             'keyup input': 'onBlur',
@@ -636,44 +618,38 @@ NS.UI = (function(ns) {
                 }
             }
         },
-
         initialize: function() {
-            
-            this.validOptions = this.validOptions.concat(['format']);
+            this.validOptions = this.validOptions.concat(['format']);            
             BaseEditor.prototype.initialize.apply(this, arguments);
+            this.formater   = new ns.DateFormater();            
             this._val = this.initialData;
         },
-
         afterRender: function() {
             this.$dp = this.$el.find('input');
-            this.$dp.datepicker({format: this.format})
-                    .on('changeDate', this, function(ev) {
-                        if (ev.viewMode == 'days') {
-                            ev.data.$dp.trigger('input').datepicker('hide');
-                        }
-                    });
-            if (this.initialData)
+            this.$dp.datepicker({format: eCollection.config.dateFormat})
+            .on('changeDate', this, function(ev) {
+                if (ev.viewMode == 'days') {
+                    ev.data.$dp.trigger('input').datepicker('hide');
+                }
+            });
+            if (this.initialData) {
                 this.$dp.datepicker('setValue', this.initialData);
+            }
         },
-
         showCalendar: function(e) {
             this.$dp.datepicker("show");
         },
-
         onInput: function(e) {
             this._val = $(e.target).val();
             this.validate();
         },
-
         onBlur: function(e) {
             this.$dp.datepicker('hide');
         },
-
         getValue: function() {
             return this._val != "" ? this._val : undefined;
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover("destroy");   //  destroy the pop for responsive mode
@@ -681,8 +657,7 @@ NS.UI = (function(ns) {
                 this.$el.find('.help-inline').html('');         //  remove text for other mode
             }
         },
-
-        handleValidationError: function (err) {
+        handleValidationError: function(err) {
             BaseEditor.prototype.handleValidationError.apply(this, arguments);
             if (this.mode === "responsive") {
                 $(this.$el).find("input").popover({
@@ -698,39 +673,38 @@ NS.UI = (function(ns) {
     }, {
         templateSrc: {
             stacked:
-                '<div class="control-group">' +
-                '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '    <div class="controls">' +
-                '        <div class="input-append date">' +
-                '            <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
-                '            <span class="add-on"><i class="icon-calendar"></i></span>' +
-                '        </div>' +
-                '        <div class="help-inline"></div>' +
-                '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
-                '    </div>' +
-                '</div>',
+                    '<div class="control-group">' +
+                    '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <div class="controls">' +
+                    '        <div class="input-append date">' +
+                    '            <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
+                    '            <span class="add-on"><i class="icon-calendar"></i></span>' +
+                    '        </div>' +
+                    '        <div class="help-inline"></div>' +
+                    '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
+                    '    </div>' +
+                    '</div>',
             inline:
-                '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
-                '    <div class="input-append date">' +
-                '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
-                '        <span class="add-on"><i class="icon-calendar"></i></span>' +
-                '    </div>' +
-                '    <div class="help-inline"></div>' +
-                '</td>',
+                    '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
+                    '    <div class="input-append date">' +
+                    '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
+                    '        <span class="add-on"><i class="icon-calendar"></i></span>' +
+                    '    </div>' +
+                    '    <div class="help-inline"></div>' +
+                    '</td>',
             responsive:
-                '<div class="span<%= data.size %> input-append date control-group <% if (data.margin) { %>margin0<% } %>">'+
-                '   <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                '   <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' + 
-                '   <span class="add-on"><i class="icon-calendar"></i></span>' + 
-                '</div>' + 
-                '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
+                    '<div class="span<%= data.size %> input-append date control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '   <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '   <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' +
+                    '   <span class="add-on"><i class="icon-calendar"></i></span>' +
+                    '</div>' +
+                    '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }
     });
 
     editors._Composite = BaseEditor.extend({
         // Selector for field area (an element in the template where items will be placed)
         fieldRegion: '',
-
         initialize: function(options) {
             this.validOptions = this.validOptions.concat(['fieldRegion']);
             BaseEditor.prototype.initialize.apply(this, arguments);
@@ -744,17 +718,16 @@ NS.UI = (function(ns) {
                 this.addEditor.apply(this, _.values(fieldDefinition));
             }, this);
         },
-
-        getFields: function () {
+        getFields: function() {
             // To be implemented by child classes
             // must return a list of field definition: [{name: '', editor: Editor, options: {}}]
             return [];
         },
+        addEditor: function(name, Editor, options) {
 
-        addEditor: function (name, Editor, options) {
-            
             // Do not proceed for readonly fields
-            if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable)) return;
+            if (('editable' in options) && !(_.isFunction(options.editable) ? options.editable.call(this.initialData) : options.editable))
+                return;
             if ((Editor == editors.Select || Editor == editors.CheckBox) && _.isFunction(options.options)) {
                 options.options = _.bind(options.options, this.initialData);
             }
@@ -781,7 +754,6 @@ NS.UI = (function(ns) {
 
             return view;
         },
-
         onFieldValidate: function(fieldName, data) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
                 var idx = this.names[fieldName];
@@ -792,14 +764,12 @@ NS.UI = (function(ns) {
                     this.trigger('valid:pass', this.name, this.postProcessData(this.data));
             }
         },
-
         onFieldError: function(fieldName, error) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
                 this.errors[fieldName] = error;
                 return this.trigger('valid:fail', this.name, this.errors);
             }
         },
-
         validate: function() {
             // Relay validation to each subfield
             this.getViews(this.fieldRegion).each(function(view) {
@@ -807,8 +777,7 @@ NS.UI = (function(ns) {
                     view.validate();
             });
         },
-
-        clearValidationErrors: function () {
+        clearValidationErrors: function() {
             BaseEditor.prototype.clearValidationErrors.apply(this, arguments);
             this.getViews(this.fieldRegion).each(function(view) {
                 if (view instanceof BaseEditor)
@@ -819,7 +788,6 @@ NS.UI = (function(ns) {
 
     editors.NestedModel = editors._Composite.extend({
         templateId: 'subform',
-
         initialize: function(options) {
             // Initialize schema+initialData depending on provided input (model instance? model class? raw schema/data)
             if (options.initialData && options.initialData instanceof Backbone.Model) {
@@ -846,13 +814,12 @@ NS.UI = (function(ns) {
 
             editors._Composite.prototype.initialize.apply(this, arguments);
         },
-
-        getFields: function () {
+        getFields: function() {
             var fields = [];
             this.fieldsets = {};
             _.each(this.fields, function(field) {
                 var fieldDef, name;
-                if (_.isObject(field)) {                    
+                if (_.isObject(field)) {
                     // Fieldset
                     name = _.uniqueId(this.name);
                     fieldDef = {
@@ -878,7 +845,6 @@ NS.UI = (function(ns) {
             }, this);
             return fields;
         },
-
         getLabel: function() {
             var labels = [];
             this.getViews(this.fieldRegion).each(function(view) {
@@ -888,7 +854,6 @@ NS.UI = (function(ns) {
             });
             return labels;
         },
-
         onFieldValidate: function(fieldName, data) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
                 var idx = this.names[fieldName];
@@ -900,15 +865,13 @@ NS.UI = (function(ns) {
                     this.trigger('valid:pass', this.name, this.postProcessData(this.data));
             }
         },
-
         onFieldError: function(fieldName, error) {
             if (fieldName in this.names) { // BB does not support controlling event propagation, use explicit filtering instead
                 this.errors[fieldName] = error;
                 return this.trigger('valid:fail', this.name, this.errors);
             }
         },
-
-        postProcessData: function (rawData) {
+        postProcessData: function(rawData) {
             if (this.instance) {
                 this.instance.set(rawData);
                 return this.instance;
@@ -916,18 +879,17 @@ NS.UI = (function(ns) {
                 return _.extend(this.initialData, rawData);
             }
         },
-
         serialize: function() {
             return {id: this.id, title: this.label, helpText: this.helpText, mode: this.mode};
         }
     }, {
         templateSrc: {
             stacked:
-                '<fieldset id="<%- data.id %>">' +
-                '    <legend><%- data.title %></legend>' +
-                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
-                '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Delete<i class="icon-remove"></i></button><% } %>'+
-                '</fieldset>',
+                    '<fieldset id="<%- data.id %>">' +
+                    '    <legend><%- data.title %></legend>' +
+                    '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                    '    <% if (data.id.match("fields")) { %><button type="button" class="btn del-item" id="<%- data.id %>' + '_supp">Delete<i class="icon-remove"></i></button><% } %>' +
+                    '</fieldset>',
             inline: '<tr></tr>',
             responsive: '<fieldset class="row-fluid"></fieldset>'
         }
@@ -937,12 +899,10 @@ NS.UI = (function(ns) {
         templateId: 'editor-list',
         fieldRegion: '.items',
         headRegion: 'thead',
-
         events: {
             'click .add-item': 'addItem',
             'click .del-item': 'delItem'
         },
-
         initialize: function(options) {
             // Ensure we have a model class before going further
             if (typeof options.model === 'undefined')
@@ -970,8 +930,7 @@ NS.UI = (function(ns) {
                 this.headerView.options.headers = anyRowView.getLabel();
             }
         },
-
-        getFields: function () {
+        getFields: function() {
             var fields = [];
             _.each(this.initialData, function(instance) {
                 var options = this.getItemOptions();
@@ -985,16 +944,14 @@ NS.UI = (function(ns) {
             }, this);
             return fields;
         },
-
         getItemOptions: function() {
             return _.pick(this, 'model', 'mode');
         },
-
         addItem: function(e) {
             var view = this.addEditor(
-                            this._counter++,
-                            editors.NestedModel,
-                            this.getItemOptions());
+                    this._counter++,
+                    editors.NestedModel,
+                    this.getItemOptions());
 
             // If item is the first item, also display labels as an header row
             if (this._counter == 1) {
@@ -1012,50 +969,49 @@ NS.UI = (function(ns) {
         delItem: function(e) {
             var form = $(e.target).attr('id');
             form = form.substring(0, form.length - 5);
-            
+
             var fieldName = this.name + '_' + form.replace(this.id + '_', '');
             delete this.names[fieldName];
-             
+
             var cpt = 0;
             _.each(this.names, function(val, key) {
                 this.names[key] = cpt++;
             }, this);
-            
+
             this.getViews(this.fieldRegion).each(function(nestedView) {
-               if (nestedView.id == form)
+                if (nestedView.id == form)
                     nestedView.remove();
             });
-            $('#' + form).remove(); 
+            $('#' + form).remove();
         }
     }, {
         templateSrc: {
             stacked:
-                '<div>' +
-                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
-                '    <div class="items"></div>' +
-                '    <button type="button" class="btn add-item">Add<i class="icon-plus"></i></button>' +
-                '</div>',
+                    '<div>' +
+                    '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                    '    <div class="items"></div>' +
+                    '    <button type="button" class="btn add-item">Add<i class="icon-plus"></i></button>' +
+                    '</div>',
             inline:
-                '<div>' +
-                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
-                '    <table class="form-inline">' +
-                '        <thead></thead>' +
-                '        <tbody class="items"></tbody>' +
-                '    </table>' +
-                '    <button type="button" class="btn add-item">Add</button>' +
-                '</div>',
+                    '<div>' +
+                    '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                    '    <table class="form-inline">' +
+                    '        <thead></thead>' +
+                    '        <tbody class="items"></tbody>' +
+                    '    </table>' +
+                    '    <button type="button" class="btn add-item">Add</button>' +
+                    '</div>',
             responsive:
-                '<div>' +
-                '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
-                '    <div class="items"></div>' +
-                '    <button type="button" class="btn add-item">Add</button>' +
-                '</div>'
+                    '<div>' +
+                    '    <div class="help-block"><% if (data.helpText) { %><span class="label label-info">Note:</span> <%- data.helpText %><% } %></div>' +
+                    '    <div class="items"></div>' +
+                    '    <button type="button" class="btn add-item">Add</button>' +
+                    '</div>'
         }
     });
 
     editors.List.Header = BaseView.extend({
         templateId: 'editor-listheader',
-
         serialize: function() {
             return ('headers' in this.options) ? _.pick(this.options, 'headers') : {headers: []};
         }
@@ -1063,7 +1019,7 @@ NS.UI = (function(ns) {
         templateSrc: {
             stacked: '<tr><% _.each(data.headers, function(header) { %><th><% if (header.required) { %><b>*</b> <% } %><%- header.label %></th><% }); %></tr>',
             inline: '',
-            responsive : '<tr><% _.each(data.headers, function(header) { %><th><% if (header.required) { %><b>*</b> <% } %><%- header.label %></th><% }); %></tr>'
+            responsive: '<tr><% _.each(data.headers, function(header) { %><th><% if (header.required) { %><b>*</b> <% } %><%- header.label %></th><% }); %></tr>'
         }
     });
 
@@ -1085,20 +1041,19 @@ NS.UI = (function(ns) {
 
             editors._Composite.prototype.initialize.apply(this, arguments);
         },
-
-        getFields: function () {
+        getFields: function() {
             var fields = [];
             var counter = 0;
             var schemas = _.result(this, 'schemas');
             _.each(schemas[this.activeSchema], function(field, name) {
-                
+
                 if (this.activeSchema in this.cache && name in this.cache[this.activeSchema].data) {
                     field.initialData = this.cache[this.activeSchema].data[name];
                 } else if (this.activeSchema !== null && this.activeSchema == this.initialSchema) {
                     field.initialData = this.initialData[name];
                 }
                 field.mode = field.mode || this.mode;
-                
+
                 //  Check counter value
                 if (counter === 0) {
                     field.margin = true;
@@ -1112,9 +1067,11 @@ NS.UI = (function(ns) {
                         field.margin = false;
                     }
                 }
-                
-                if( field.eol ) { counter = 0; }
-                
+
+                if (field.eol) {
+                    counter = 0;
+                }
+
                 var editor = editors[field.type];
                 if (editor) {
                     fields.push({name: name, editor: editor, options: field});
@@ -1122,16 +1079,17 @@ NS.UI = (function(ns) {
             }, this);
             return fields;
         },
-
         setSelector: function(view) {
             this.initialSchema = view.getInitialValue()[0];
             this.setSchema(this.initialSchema);
-            view.addEvents({'change select': _.bind(function(e) {this.setSchema($(e.target).val());}, this)});
+            view.addEvents({'change select': _.bind(function(e) {
+                    this.setSchema($(e.target).val());
+                }, this)});
         },
-
         setSchema: function(id) {
             var schemas = _.result(this, 'schemas');
-            if (!(id in schemas)) return;
+            if (!(id in schemas))
+                return;
 
             this.activeSchema = id;
 
@@ -1144,9 +1102,8 @@ NS.UI = (function(ns) {
                     view.remove();
                 }
             }),
-
-            // Point toword activeSchema data
-            this.data = this.cache[id].data;
+                    // Point toword activeSchema data
+                    this.data = this.cache[id].data;
             this.errors = this.cache[id].errors;
             this.names = this.cache[id].names;
 
@@ -1156,21 +1113,19 @@ NS.UI = (function(ns) {
             }, this);
 
             // Refresh view if it has already rendered
-            if (this.el.parentNode) this.render();
+            if (this.el.parentNode)
+                this.render();
         }
     });
 
     ns.Form = editors.NestedModel.extend({
         templateId: 'form',
-
         events: {
             'submit': 'onSubmit',
             'reset': 'onReset'
         },
-
         // Selector for field area
         fieldRegion: '.form-content',
-
         initialize: function(options) {
             // Set default configuration
             this.defaults = _.extend({}, this.defaults, {
@@ -1193,29 +1148,24 @@ NS.UI = (function(ns) {
 
             editors.NestedModel.prototype.initialize.call(this, options);
         },
-
         onFieldValidate: function(fieldName, data) {
             editors.NestedModel.prototype.onFieldValidate.apply(this, arguments);
             if (fieldName in this.names && $.isEmptyObject(this.errors))
                 this.toggleSubmit(false);
         },
-
         onFieldError: function(fieldName, error) {
             editors.NestedModel.prototype.onFieldError.apply(this, arguments);
             if (fieldName in this.names)
                 this.toggleSubmit(true);
         },
-
         toggleSubmit: function(disabled) {
             this.$el.find('input[type="submit"]').prop('disabled', disabled);
         },
-
         onReset: function(e) {
             this.clearValidationErrors();
             this.toggleSubmit(false);
             this.data = {};
         },
-
         onSubmit: function(e) {
             e.preventDefault();
 
@@ -1231,22 +1181,22 @@ NS.UI = (function(ns) {
     }, {
         templateSrc: {
             stacked:
-                '<form class="<% if (data.inline) { %>form-inline<% } else { %>form-horizontal<% } %>">' +
-                '    <h3><%- data.title %></h3>' +
-                '    <div class="form-content"></div>' +
-                '    <div class="form-actions">' +
-                '       <input type="submit"s class="btn btn-primary" /> <input type="reset" class="btn" />' +
-                '    </div>' +
-                '</form>',
+                    '<form class="<% if (data.inline) { %>form-inline<% } else { %>form-horizontal<% } %>">' +
+                    '    <h3><%- data.title %></h3>' +
+                    '    <div class="form-content"></div>' +
+                    '    <div class="form-actions">' +
+                    '       <input type="submit"s class="btn btn-primary" /> <input type="reset" class="btn" />' +
+                    '    </div>' +
+                    '</form>',
             inline: '',
             responsive:
-                '<form class="container-fluid">' +
-                '    <h3><%- data.title %></h3>' +
-                '    <div class="form-content"></div>' +
-                '    <div class="form-actions">' +
-                '       <input type="submit" class="btn btn-primary" /> <input type="reset" class="btn" />' +
-                '    </div>' +
-                '</form>'
+                    '<form class="container-fluid">' +
+                    '    <h3><%- data.title %></h3>' +
+                    '    <div class="form-content"></div>' +
+                    '    <div class="form-actions">' +
+                    '       <input type="submit" class="btn btn-primary" /> <input type="reset" class="btn" />' +
+                    '    </div>' +
+                    '</form>'
         },
         editors: editors  // Keep a reference to editor classes in order to allow templateSrc customization
     });
@@ -1254,6 +1204,83 @@ NS.UI = (function(ns) {
     // Expose validation related objects, so that user can extend it
     ns.Form.ValidationError = ValidationError;
     ns.Form.validators = validators;
+    
+    ns.DateFormater = function DateFmt() {
+        
+        var lang = (["fr", "en"].indexOf( (navigator.language || navigator.userLanguage) ) > -1) ? (navigator.language || navigator.userLanguage) : "en";
 
+        var month = {
+            "en" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+            "fr" : ["Jan", "Fev", "Mar", "Avr", "Mai", "Jui", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"]
+        };        
+        var days = {
+            "en" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            "fr" : ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+        };
+        var zeroPad = function(number) {
+            return ("0" + number).substr(-2, 2);
+        };
+        var dateMarkers = {
+            d : ['getDate',  function(v) { 
+                    return zeroPad(v); 
+            }],
+            m : ['getMonth', function(v) { 
+                return zeroPad(v + 1); 
+            }],
+            n : ['getMonth', function(v) { 
+                return month[lang][v]; 
+            }],
+            w : ['getDay',   function(v) { 
+                return days[lang][v]; 
+            }],
+            y : ['getFullYear'],
+            H: ['getHours', function(v) {
+                    return zeroPad(v)
+            }],
+            M: ['getMinutes', function(v) {
+                    return zeroPad(v)
+            }],
+            S: ['getSeconds', function(v) {
+                    return zeroPad(v)
+            }],
+            i: ['toISOString']
+        };
+        var dateFunction = function(date, item) {
+            switch (item) {                
+                case "dd"   : return zeroPad(date.getDate()); break;                
+                case "d"    : return date.getDate(); break;                    
+                case "mm"   : return zeroPad(date.getMonth() + 1); break;                    
+                case "m"    : return (date.getMonth() + 1); break;                    
+                case "yyyy" : return date.getFullYear(); break;                    
+                case "yy"   : return date.getFullYear().toString().substr(2, 2); break;
+                    
+                //  not used for moment
+                case "w"    : return days[lang][date.getDay()]; break;
+                case "n"    : return month[lang][date.getMonth()]; break;
+            };
+        };
+        this.format = function(date, formatString) {            
+            var res = "";
+            /*if (formatString.indexOf("n") > -1 || formatString.indexOf('w') > -1) {
+                _.each( formatString.split('/'), function(item) {
+                    res += dateFunction(date, item) + " ";
+                });
+            } else {*/
+                _.each( formatString.split('/'), function(item) {
+                    res += dateFunction(date, item) + '/';
+                });
+            /*}            */
+            return res.substr(0, res.length - 1);            
+            /*var dateTxt = formatString.replace(/%(.)/g, function(m, p) {
+                var rv = date[(dateMarkers[p])[0]]();
+                if (dateMarkers[p][1] != null) {
+                    rv = dateMarkers[p][1](rv);
+                }
+                return rv;
+            });
+            return dateTxt;*/            
+        };
+    };
+    
     return ns;
 })(NS.UI || {});

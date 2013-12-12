@@ -52,8 +52,17 @@
             instance = new Person(),
 
             // 3) Create a form for that instance
-            form = new NS.UI.Form({initialData: instance, fields: [{title: 'Identification', fields: ['title', 'fName', 'lName', 'dob', 'address']}, {title: 'Activities', fields: ['job', 'sports']}, 'comments']});
+            form = new NS.UI.Form({
+                initialData: instance, 
+                fields: [
+                    {title: 'Identification', fields: ['title', 'fName', 'lName', 'dob', 'address']}, 
+                    {title: 'Activities', fields: ['job', 'sports']}, 
+                    'comments'
+                ],
+                dateFormat: 'mm/dd/yyyy'
+            });
 
+            console.log(form)
         // 3bis) You will usually want to code what to do with validated data
         form.on('submit:valid', function(instance) {
             if (console) {

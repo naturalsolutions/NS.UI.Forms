@@ -621,12 +621,12 @@ NS.UI = (function(ns) {
         initialize: function() {
             this.validOptions = this.validOptions.concat(['format']);            
             BaseEditor.prototype.initialize.apply(this, arguments);
-            this.formater   = new ns.DateFormater();            
+            this.dateFormat = arguments[0].format;      //  get date format from arguments
             this._val = this.initialData;
         },
         afterRender: function() {
             this.$dp = this.$el.find('input');
-            this.$dp.datepicker({format: eCollection.config.dateFormat})
+            this.$dp.datepicker({format: this.dateFormat})
             .on('changeDate', this, function(ev) {
                 if (ev.viewMode == 'days') {
                     ev.data.$dp.trigger('input').datepicker('hide');
@@ -1133,6 +1133,8 @@ NS.UI = (function(ns) {
                 label: ''
             });
 
+            this.dateFormat = options.dateFormat;
+            
             // Infere configuration from the model instance if any
             if (options.initialData && options.initialData instanceof Backbone.Model) {
                 var instance = options.initialData;

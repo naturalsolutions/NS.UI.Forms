@@ -621,7 +621,7 @@ NS.UI = (function(ns) {
         initialize: function() {
             this.validOptions = this.validOptions.concat(['format']);            
             BaseEditor.prototype.initialize.apply(this, arguments);
-            this.dateFormat = arguments[0].format;      //  get date format from arguments
+            this.dateFormat = ns.dateFormat;      //  get date format from arguments
             this._val = this.initialData;
         },
         afterRender: function() {
@@ -1126,14 +1126,14 @@ NS.UI = (function(ns) {
         },
         // Selector for field area
         fieldRegion: '.form-content',
-        initialize: function(options) {
+        initialize: function(options) {            
             // Set default configuration
             this.defaults = _.extend({}, this.defaults, {
                 id: _.uniqueId('form_'),
                 label: ''
             });
-
             this.dateFormat = options.dateFormat;
+            ns.dateFormat = options.dateFormat;
             
             // Infere configuration from the model instance if any
             if (options.initialData && options.initialData instanceof Backbone.Model) {
@@ -1214,14 +1214,17 @@ NS.UI = (function(ns) {
         var month = {
             "en" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
             "fr" : ["Jan", "Fev", "Mar", "Avr", "Mai", "Jui", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"]
-        };        
+        };     
+        
         var days = {
             "en" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
             "fr" : ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
         };
+        
         var zeroPad = function(number) {
             return ("0" + number).substr(-2, 2);
         };
+        
         var dateMarkers = {
             d : ['getDate',  function(v) { 
                     return zeroPad(v); 
@@ -1247,6 +1250,7 @@ NS.UI = (function(ns) {
             }],
             i: ['toISOString']
         };
+        
         var dateFunction = function(date, item) {
             switch (item) {                
                 case "dd"   : return zeroPad(date.getDate()); break;                
@@ -1255,33 +1259,17 @@ NS.UI = (function(ns) {
                 case "m"    : return (date.getMonth() + 1); break;                    
                 case "yyyy" : return date.getFullYear(); break;                    
                 case "yy"   : return date.getFullYear().toString().substr(2, 2); break;
-                    
-                //  not used for moment
-                case "w"    : return days[lang][date.getDay()]; break;
-                case "n"    : return month[lang][date.getMonth()]; break;
             };
         };
+        
         this.format = function(date, formatString) {            
             var res = "";
-            /*if (formatString.indexOf("n") > -1 || formatString.indexOf('w') > -1) {
-                _.each( formatString.split('/'), function(item) {
-                    res += dateFunction(date, item) + " ";
-                });
-            } else {*/
-                _.each( formatString.split('/'), function(item) {
-                    res += dateFunction(date, item) + '/';
-                });
-            /*}            */
-            return res.substr(0, res.length - 1);            
-            /*var dateTxt = formatString.replace(/%(.)/g, function(m, p) {
-                var rv = date[(dateMarkers[p])[0]]();
-                if (dateMarkers[p][1] != null) {
-                    rv = dateMarkers[p][1](rv);
-                }
-                return rv;
+            _.each(formatString.split('/'), function(item) {
+                res += dateFunction(date, item) + '/';
             });
-            return dateTxt;*/            
+            return res.substr(0, res.length - 1);
         };
+        
     };
     
     return ns;

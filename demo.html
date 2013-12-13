@@ -39,7 +39,7 @@
                     title: {title: 'Title', type: 'Select', required: true, options: ['Miss', 'Mrs', 'Mr', 'Ms']},
                     fName: {title: 'First name', type: 'Text'},
                     lName: {title: 'Last name', type: 'Text', required: true},
-                    dob: {title: 'Date of birth', type: 'Date', format: 'm/d/yy'},
+                    dob: {title: 'Date of birth', type: 'Date'},
                     address: {title: 'Address', type: 'NestedModel', model: Address, required: true},
                     job: {title: 'Job', type: 'Text'},
                     sports: {title: 'Sports', type: 'Text'},
@@ -59,10 +59,10 @@
                     {title: 'Activities', fields: ['job', 'sports']}, 
                     'comments'
                 ],
-                dateFormat: 'mm/dd/yyyy'
+                dateFormat: 'dd/mm/yyyy'    //  set display date format, avalaible values : mm, d, dd, yy, yyyy
             });
 
-            console.log(form)
+            
         // 3bis) You will usually want to code what to do with validated data
         form.on('submit:valid', function(instance) {
             if (console) {

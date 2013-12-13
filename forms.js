@@ -1055,25 +1055,6 @@ NS.UI = (function(ns) {
                 }
                 field.mode = field.mode || this.mode;
 
-                //  Check counter value
-                if (counter === 0) {
-                    field.margin = true;
-                    counter += field.size;
-                } else {
-                    if (counter + field.size > 12) {
-                        field.margin = true;
-                        counter = field.size;
-                    } else {
-                        counter += field.size;
-                        field.margin = false;
-                    }
-                }
-
-                if (field.eol) {
-                    counter = 0;
-                }
-
-                
                 var editor = editors[field.type];
                 if (editor) {
                     fields.push({name: name, editor: editor, options: field});

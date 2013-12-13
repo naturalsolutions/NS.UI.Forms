@@ -737,6 +737,7 @@ NS.UI = (function(ns) {
                 name: this.childNamePrefix + name,
                 label: options.title || name
             }));
+
             this.insertView(this.fieldRegion, view);
             // Keep original name in a hash
             this.names[view.name] = name;
@@ -1072,11 +1073,26 @@ NS.UI = (function(ns) {
                     counter = 0;
                 }
 
+                
                 var editor = editors[field.type];
                 if (editor) {
                     fields.push({name: name, editor: editor, options: field});
                 }
             }, this);
+            
+            var cpt = 0;
+            _.each(fields, function(item) {
+                if (cpt === 0) { item.options.margin = true; }
+
+                if (cpt + item.options.size >= 12 || item.options.eol == true) {
+                    item.options.eol = true;
+                    cpt = 0;
+                } else {
+                    cpt += item.options.size;
+                }
+
+            });
+            
             return fields;
         },
         setSelector: function(view) {

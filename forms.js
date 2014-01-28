@@ -619,14 +619,13 @@ NS.UI = (function(ns) {
             }
         },
         initialize: function() {
-            this.validOptions = this.validOptions.concat(['format']);            
+            this.validOptions = this.validOptions.concat(['format']);
             BaseEditor.prototype.initialize.apply(this, arguments);
-            this.dateFormat = ns.dateFormat;      //  get date format from arguments
             this._val = this.initialData;
         },
         afterRender: function() {
             this.$dp = this.$el.find('input');
-            this.$dp.datepicker({format: this.dateFormat})
+            this.$dp.datepicker({format: this.format})
             .on('changeDate', this, function(ev) {
                 if (ev.viewMode == 'days') {
                     ev.data.$dp.trigger('input').datepicker('hide');
@@ -1129,8 +1128,6 @@ NS.UI = (function(ns) {
                 id: _.uniqueId('form_'),
                 label: ''
             });
-            this.dateFormat = options.dateFormat;
-            ns.dateFormat = options.dateFormat;
             
             // Infere configuration from the model instance if any
             if (options.initialData && options.initialData instanceof Backbone.Model) {
@@ -1203,71 +1200,6 @@ NS.UI = (function(ns) {
     // Expose validation related objects, so that user can extend it
     ns.Form.ValidationError = ValidationError;
     ns.Form.validators = validators;
-    
-    ns.DateFormater = function DateFmt() {
-        
-        var lang = (["fr", "en"].indexOf( (navigator.language || navigator.userLanguage) ) > -1) ? (navigator.language || navigator.userLanguage) : "en";
 
-        var month = {
-            "en" : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            "fr" : ["Jan", "Fev", "Mar", "Avr", "Mai", "Jui", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"]
-        };     
-        
-        var days = {
-            "en" : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-            "fr" : ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
-        };
-        
-        var zeroPad = function(number) {
-            return ("0" + number).substr(-2, 2);
-        };
-        
-        var dateMarkers = {
-            d : ['getDate',  function(v) { 
-                    return zeroPad(v); 
-            }],
-            m : ['getMonth', function(v) { 
-                return zeroPad(v + 1); 
-            }],
-            n : ['getMonth', function(v) { 
-                return month[lang][v]; 
-            }],
-            w : ['getDay',   function(v) { 
-                return days[lang][v]; 
-            }],
-            y : ['getFullYear'],
-            H: ['getHours', function(v) {
-                    return zeroPad(v)
-            }],
-            M: ['getMinutes', function(v) {
-                    return zeroPad(v)
-            }],
-            S: ['getSeconds', function(v) {
-                    return zeroPad(v)
-            }],
-            i: ['toISOString']
-        };
-        
-        var dateFunction = function(date, item) {
-            switch (item) {                
-                case "dd"   : return zeroPad(date.getDate()); break;                
-                case "d"    : return date.getDate(); break;                    
-                case "mm"   : return zeroPad(date.getMonth() + 1); break;                    
-                case "m"    : return (date.getMonth() + 1); break;                    
-                case "yyyy" : return date.getFullYear(); break;                    
-                case "yy"   : return date.getFullYear().toString().substr(2, 2); break;
-            };
-        };
-        
-        this.format = function(date, formatString) {            
-            var res = "";
-            _.each(formatString.split('/'), function(item) {
-                res += dateFunction(date, item) + '/';
-            });
-            return res.substr(0, res.length - 1);
-        };
-        
-    };
-    
     return ns;
 })(NS.UI || {});

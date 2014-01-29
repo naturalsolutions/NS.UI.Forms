@@ -967,22 +967,24 @@ NS.UI = (function(ns) {
             view.render().done(doneCallback);
         },
         delItem: function(e) {
-            var form = $(e.target).attr('id');
-            form = form.substring(0, form.length - 5);
+            ns.Form.confirm('Are you sure ?', {evt: e, view: this}).done(function() {
+                var form = $(this.evt.target).attr('id');
+                form = form.substring(0, form.length - 5);
 
-            var fieldName = this.name + '_' + form.replace(this.id + '_', '');
-            delete this.names[fieldName];
+                var fieldName = this.view.name + '_' + form.replace(this.view.id + '_', '');
+                delete this.view.names[fieldName];
 
-            var cpt = 0;
-            _.each(this.names, function(val, key) {
-                this.names[key] = cpt++;
-            }, this);
+                var cpt = 0;
+                _.each(this.view.names, function(val, key) {
+                    this.names[key] = cpt++;
+                }, this.view);
 
-            this.getViews(this.fieldRegion).each(function(nestedView) {
-                if (nestedView.id == form)
-                    nestedView.remove();
+                this.view.getViews(this.view.fieldRegion).each(function(nestedView) {
+                    if (nestedView.id == form)
+                        nestedView.remove();
+                });
+                $('#' + form).remove();
             });
-            $('#' + form).remove();
         }
     }, {
         templateSrc: {
@@ -1200,6 +1202,17 @@ NS.UI = (function(ns) {
     // Expose validation related objects, so that user can extend it
     ns.Form.ValidationError = ValidationError;
     ns.Form.validators = validators;
+
+    // Expose confirm function, so that user can override it. Must return a deferred object.
+    ns.Form.confirm = function(message, ctx) {
+        var dfd = $.Deferred();
+        if (window.confirm(message)) {
+            dfd.resolveWith(ctx)
+        } else {
+            dfd.rejectWith(ctx)
+        }
+        return dfd;
+    }
 
     return ns;
 })(NS.UI || {});

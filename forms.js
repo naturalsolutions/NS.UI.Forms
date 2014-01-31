@@ -605,7 +605,8 @@ NS.UI = (function(ns) {
         templateId: 'editor-date',
         events: {
             'input input': 'onInput',
-            'keyup input': 'onBlur',
+            'keyup input': 'onKeyUp',
+            'blur input': "onBlur",
             'click span.add-on': 'showCalendar',
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
@@ -642,7 +643,11 @@ NS.UI = (function(ns) {
             this._val = $(e.target).val();
             this.validate();
         },
-        onBlur: function(e) {
+        onKeyUp: function(e) {
+            //  hide the datepicker if the press key is different of tab and shift tab
+            if (e.keyCode !== 9 && e.keyCode !== 16) { this.$dp.datepicker('hide'); }
+        },
+        onBlur : function(e) {
             this.$dp.datepicker('hide');
         },
         getValue: function() {

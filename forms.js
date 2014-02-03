@@ -685,8 +685,10 @@ NS.UI = (function(ns) {
             }
         },
         postProcessData: function(rawData) {
-            var formater    = new ns.Form.DateFormater();
-            return formater.getDate(rawData, this.format);
+            if (rawData) {
+                var formater    = new ns.Form.DateFormater();
+                return formater.getDate(rawData, this.format);
+            }
         }
     }, {
         templateSrc: {

@@ -619,12 +619,20 @@ NS.UI = (function(ns) {
                 }
             }
         },
-        initialize: function() {
+        initialize: function(options) {
+            if (! options.format) {
+                options.format = ns.Form.defaultDateFormat;
+            }
             this.validOptions = this.validOptions.concat(['format']);
-            BaseEditor.prototype.initialize.apply(this, arguments);   
 
-            var formater = new ns.Form.DateFormater();
-            this._val = formater.format(this.initialData, this.format);
+            BaseEditor.prototype.initialize.apply(this, arguments);
+
+            if (this.initialData) {
+                var formater = new ns.Form.DateFormater();
+                this._val = formater.format(this.initialData, this.format);
+            } else {
+                this._val = '';
+            }
         },
         afterRender: function() {
             this.$dp = this.$el.find('input');
@@ -1224,6 +1232,9 @@ NS.UI = (function(ns) {
         }
         return dfd;
     }
+
+    // Expose default date format, so that user can override it
+    ns.Form.defaultDateFormat = 'dd/mm/yyyy';
 
     ns.Form.DateFormater = function() {
         var lang = (["fr", "en"].indexOf( (navigator.language || navigator.userLanguage) ) > -1) ? (navigator.language || navigator.userLanguage) : "en";

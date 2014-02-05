@@ -669,6 +669,7 @@ NS.UI = (function(ns) {
             }
         }
     }, {
+        defaultDateFormat: 'dd/mm/yyyy', // Expose default date format, so that user can override it
         addDatePicker: function($elt, value, format) {}, // Expose a datepicker utility, so that user can optionnally override it
         templateSrc: {
             stacked:
@@ -1206,9 +1207,6 @@ NS.UI = (function(ns) {
         }
         return dfd;
     }
-
-    // Expose default date format, so that user can override it
-    ns.Form.defaultDateFormat = 'dd/mm/yyyy';
 
     ns.Form.DateFormater = function() {
         var lang = (["fr", "en"].indexOf( (navigator.language || navigator.userLanguage) ) > -1) ? (navigator.language || navigator.userLanguage) : "en";

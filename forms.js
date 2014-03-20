@@ -605,9 +605,6 @@ NS.UI = (function(ns) {
         templateId: 'editor-date',
         events: {
             'input input': 'onInput',
-            'keyup input': 'onKeyUp',
-            'blur input': "onBlur",
-            'click span.add-on': 'showCalendar',
             'mouseenter': function() {
                 if ((this.mode === "responsive" || this.mode === "inline") && this.helpText !== undefined && this.helpText.length > 0) {
                     $(this.$el).find("input").popover({
@@ -619,9 +616,11 @@ NS.UI = (function(ns) {
                 }
             }
         },
-        initialize: function() {
+        initialize: function(options) {
+            if (! options.format) {
+                options.format = ns.Form.defaultDateFormat;
+            }
             this.validOptions = this.validOptions.concat(['format']);
-            BaseEditor.prototype.initialize.apply(this, arguments);   
 
             var formater = new ns.Form.DateFormater();
             this._val = this.initialData === undefined ? this.initialData : formater.format(this.initialData, ns.Form.dateFormat);
@@ -634,23 +633,21 @@ NS.UI = (function(ns) {
                     ev.data.$dp.trigger('input').datepicker('hide');
                 }
             });
+            BaseEditor.prototype.initialize.apply(this, arguments);
+
             if (this.initialData) {
-                this.$dp.datepicker('setValue', this.initialData);
+                var formater = new ns.Form.DateFormater();
+                this._val = formater.format(this.initialData, this.format);
+            } else {
+                this._val = '';
             }
         },
-        showCalendar: function(e) {
-            this.$dp.datepicker("show");
+        afterRender: function() {
+            this.constructor.addDatePicker(this.$el, this.initialData, this.format);
         },
         onInput: function(e) {
             this._val = $(e.target).val();
             this.validate();
-        },
-        onKeyUp: function(e) {
-            //  hide the datepicker if the press key is different of tab and shift tab
-            if (e.keyCode !== 9 && e.keyCode !== 16) { this.$dp.datepicker('hide'); }
-        },
-        onBlur : function(e) {
-            this.$dp.datepicker('hide');
         },
         getValue: function() {
             return this._val != "" ? this._val : undefined;
@@ -679,34 +676,33 @@ NS.UI = (function(ns) {
         postProcessData: function(rawData) {
             var formater    = new ns.Form.DateFormater();
             return formater.getDate(rawData, ns.Form.dateFormat);
+            if (rawData) {
+                var formater    = new ns.Form.DateFormater();
+                return formater.getDate(rawData, this.format);
+            }
         }
     }, {
+        defaultDateFormat: 'dd/mm/yyyy', // Expose default date format, so that user can override it
+        addDatePicker: function($elt, value, format) {}, // Expose a datepicker utility, so that user can optionnally override it
         templateSrc: {
             stacked:
                     '<div class="control-group">' +
                     '    <label class="control-label" for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
                     '    <div class="controls">' +
-                    '        <div class="input-append date">' +
-                    '            <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
-                    '            <span class="add-on"><i class="icon-calendar"></i></span>' +
-                    '        </div>' +
+                    '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
                     '        <div class="help-inline"></div>' +
                     '        <div class="help-block"><% if (data.helpText) { %><%- data.helpText %><% } %></div>' +
                     '    </div>' +
                     '</div>',
             inline:
                     '<td<% if (data.helpText) { %> data.title="<%- data.helpText %>"<% } %> class="control-group">' +
-                    '    <div class="input-append date">' +
-                    '        <input type="text" id="<%- data.id %>" name="<%- data.name %>" />' +
-                    '        <span class="add-on"><i class="icon-calendar"></i></span>' +
-                    '    </div>' +
+                    '    <input type="date" id="<%- data.id %>" name="<%- data.name %>" />' +
                     '    <div class="help-inline"></div>' +
                     '</td>',
             responsive:
-                    '<div class="span<%= data.size %> input-append date control-group <% if (data.margin) { %>margin0<% } %>">' +
-                    '   <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
-                    '   <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' +
-                    '   <span class="add-on"><i class="icon-calendar"></i></span>' +
+                    '<div class="span<%= data.size %> control-group <% if (data.margin) { %>margin0<% } %>">' +
+                    '    <label for="<%- data.id %>"><% if (data.required) { %><b>*</b><% } %> <%- data.label %></label>' +
+                    '    <input type="text" class="span11" id="<%- data.id %>" name="<%- data.name %>" />' +
                     '</div>' +
                     '<% if (data.eol) { %><hr class="span12 separator <% if (!data.separator) {%> hidden <%}%>" /> <% } %>'
         }

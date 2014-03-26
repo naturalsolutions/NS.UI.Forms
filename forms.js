@@ -622,17 +622,6 @@ NS.UI = (function(ns) {
             }
             this.validOptions = this.validOptions.concat(['format']);
 
-            var formater = new ns.Form.DateFormater();
-            this._val = this.initialData === undefined ? this.initialData : formater.format(this.initialData, ns.Form.dateFormat);
-        },
-        afterRender: function() {
-            this.$dp = this.$el.find('input');
-            this.$dp.datepicker({format: this.format})
-            .on('changeDate', this, function(ev) {
-                if (ev.viewMode == 'days') {
-                    ev.data.$dp.trigger('input').datepicker('hide');
-                }
-            });
             BaseEditor.prototype.initialize.apply(this, arguments);
 
             if (this.initialData) {
@@ -674,8 +663,6 @@ NS.UI = (function(ns) {
             }
         },
         postProcessData: function(rawData) {
-            var formater    = new ns.Form.DateFormater();
-            return formater.getDate(rawData, ns.Form.dateFormat);
             if (rawData) {
                 var formater    = new ns.Form.DateFormater();
                 return formater.getDate(rawData, this.format);
@@ -1221,8 +1208,6 @@ NS.UI = (function(ns) {
         return dfd;
     }
 
-    ns.Form.dateFormat = "dd/mm/yyyy";
-    
     ns.Form.DateFormater = function() {
         var lang = (["fr", "en"].indexOf( (navigator.language || navigator.userLanguage) ) > -1) ? (navigator.language || navigator.userLanguage) : "en";
         var month = {

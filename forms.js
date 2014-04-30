@@ -77,7 +77,7 @@ NS.UI = (function(ns) {
                 options.initialData = options.defaultValue;
             _.extend(this, _.pick(options, this.validOptions));
             if (!('validators' in options))
-                this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the 
+                this.validators = []; // Putting this in this.defaults seems more natural but it causes errors because the
             if (this.required)
                 this.validators.push(new validators.Required());
         },
@@ -1114,7 +1114,8 @@ NS.UI = (function(ns) {
         templateId: 'form',
         events: {
             'submit': 'onSubmit',
-            'reset': 'onReset'
+            'reset': 'onReset',
+            'keyup :input' : 'onKeyup'
         },
         // Selector for field area
         fieldRegion: '.form-content',
@@ -1137,8 +1138,13 @@ NS.UI = (function(ns) {
                     label: 'New ' + options.model.verboseName.toLowerCase()
                 });
             }
-
+            _.bind(this, "onKeyup");
             editors.NestedModel.prototype.initialize.call(this, options);
+        },
+        onKeyup : function(e) {
+          if (e.keyCode === 13)   {
+              this.onSubmit(e);
+          }
         },
         onFieldValidate: function(fieldName, data) {
             editors.NestedModel.prototype.onFieldValidate.apply(this, arguments);

@@ -537,7 +537,7 @@ NS.UI = (function(ns) {
         serialize: function() {
             var viewData = editors.CheckBox.prototype.serialize.apply(this, arguments);
             if (!this.multiple)
-                viewData.options.unshift({val: this.nullValue, label: '--'});
+                viewData.options.unshift({val: this.nullValue, label: ''});
             return viewData;
         }
     }, {
